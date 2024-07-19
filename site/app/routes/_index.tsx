@@ -33,7 +33,7 @@ export default function Index() {
 			<ul className="space-y-1">
 				{entries.map((e: Entry) => (
 					<li key={e.id}>
-						{e.id} {new Date(e.timestamp).toLocaleString()} - {e.value}°C
+						{new Date(e.timestamp).toLocaleString()} - {e.value}°C
 					</li>
 				))}
 			</ul>
