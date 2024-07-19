@@ -1,7 +1,14 @@
 services:
   web:
-    build: .
+    build: ./site
     ports:
-      - "80:3000"
+      - '80:3000'
     volumes:
-      - ./database.db:/app/database.db
+      - ../database.db:/app/database.db
+      - /sys/bus/iio/devices/iio:device0/in_temp_input:/app/in_temp_input
+    restart: always
+  cron:
+    build: ./cron
+    volumes:
+      - ../database.db:/app/database.db
+      - /sys/bus/iio/devices/iio:device0/in_temp_input:/app/in_temp_input
