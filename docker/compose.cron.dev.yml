@@ -1,0 +1,10 @@
+services:
+  cron:
+    build:
+      dockerfile: ./docker/Dockerfile.cron
+      context: ..
+    volumes:
+      - type: bind
+        source: '../in_temp_input_dev'
+        target: '/app/in_temp_input'
+      - ../database.db:/app/database.db

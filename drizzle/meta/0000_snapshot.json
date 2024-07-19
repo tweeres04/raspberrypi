@@ -1,9 +1,39 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "e075c41f-2ff9-49d2-90a7-35f8ca760a87",
+  "id": "fd6d4e10-2792-4cbf-bc90-ecfe9b8ac199",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
+    "entries": {
+      "name": "entries",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "timestamp": {
+          "name": "timestamp",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "value": {
+          "name": "value",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
     "visits": {
       "name": "visits",
       "columns": {
@@ -12,7 +42,7 @@
           "type": "integer",
           "primaryKey": true,
           "notNull": true,
-          "autoincrement": false
+          "autoincrement": true
         },
         "timestamp": {
           "name": "timestamp",

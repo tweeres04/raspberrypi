@@ -1,8 +1,6 @@
 ssh raspberrypi -T <<'EOL'
-	rm -rf raspberrypi
-	git clone git@github.com:tweeres04/raspberrypi.git && \
 	cd raspberrypi && \
-	touch database.db && \
-	sudo docker compose down
-	sudo docker compose up --build -d
+	git fetch && git reset --hard origin/cron && \
+	sudo docker compose -f docker/compose.yml down
+	sudo docker compose -f docker/compose.yml up --build -d
 EOL

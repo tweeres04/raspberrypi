@@ -1,0 +1,18 @@
+services:
+  web:
+    build:
+      dockerfile: ./docker/Dockerfile.site
+      context: ..
+    ports:
+      - '80:3000'
+    volumes:
+      - ../database.db:/app/database.db
+  cron:
+    build:
+      dockerfile: ./docker/Dockerfile.cron
+      context: ..
+    volumes:
+      - type: bind
+        source: '/sys/bus/iio/devices/iio:device0/in_temp_input'
+        target: '/app/in_temp_input'
+      - ../database.db:/app/database.db
