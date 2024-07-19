@@ -6,3 +6,4 @@ node_modules
 .env
 
 database.db
+in_temp_input_dev

@@ -1,0 +1,15 @@
+FROM node:lts-alpine
+
+EXPOSE 3000
+WORKDIR /app/site
+COPY ./package.json /app
+RUN cd /app
+RUN npm install
+COPY ./site /app/site
+RUN cd /app/site
+RUN npm install
+
+COPY ./db /app/db
+RUN npm run build
+
+CMD ["npm", "run", "start"]

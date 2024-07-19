@@ -1,15 +1,15 @@
 {
-  "dependencies": {
-    "better-sqlite3": "^11.1.2",
-    "drizzle-kit": "^0.23.0",
-    "drizzle-orm": "^0.32.0"
-  },
-  "scripts": {
-    "deploy": "./deploy.sh",
-    "db:push": "drizzle-kit push",
-    "db:pull": "drizzle-kit introspect",
-    "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate",
-    "db:studio": "drizzle-kit studio"
-  }
+	"dependencies": {
+		"better-sqlite3": "^11.1.2",
+		"drizzle-kit": "^0.23.0",
+		"drizzle-orm": "^0.32.0"
+	},
+	"scripts": {
+		"deploy": "./deploy.sh",
+		"db:push": "drizzle-kit push",
+		"db:download": "scp raspberrypi:/home/tweeres/raspberrypi/database.db database.db",
+		"db:generate": "drizzle-kit generate",
+		"db:migrate": "drizzle-kit migrate",
+		"db:studio": "drizzle-kit studio"
+	}
 }
