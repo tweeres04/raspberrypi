@@ -45,7 +45,7 @@ function LatestEntry({ entry }: { entry: Entry }) {
 	return (
 		<div className="flex place-content-around">
 			<div>
-				<div>Latest entry</div>
+				<div>Current temperature</div>
 				<div className="text-8xl">
 					{formatNumber(entry.ds18b20 as number)}°C
 				</div>
