@@ -3,7 +3,7 @@ import { drizzle } from 'drizzle-orm/better-sqlite3'
 import Database from 'better-sqlite3'
 
 import * as schema from '../../../db/schema'
-import { Entry } from '../../../db/schema'
+import { type Entry } from '../../../db/schema'
 import { useLoaderData } from '@remix-run/react'
 
 export const meta: MetaFunction = () => {
@@ -24,17 +24,44 @@ export async function loader() {
 	return json<Entry[]>(entries)
 }
 
+function formatDate(date: string) {
+	return new Intl.DateTimeFormat('en-CA', {
+		dateStyle: 'medium',
+		timeStyle: 'short',
+	}).format(new Date(date))
+}
+
+function LatestEntry({ entry }: { entry: Entry }) {
+	return (
+		<div className="my-10">
+			<div>Latest entry</div>
+			<div className="text-5xl">{entry.value}°C</div>
+			<div>{formatDate(entry.timestamp)}</div>
+		</div>
+	)
+}
+
+function Entry({ entry }: { entry: Entry }) {
+	return (
+		<li>
+			{formatDate(entry.timestamp)} - {entry.value}°C
+		</li>
+	)
+}
+
 export default function Index() {
 	const entries = useLoaderData<typeof loader>()
+
+	const [firstEntry, ...restOfEntries] = entries
 
 	return (
 		<div className="font-sans p-4 container mx-auto">
 			<h1 className="text-3xl mb-3">Ty&apos;s Raspberry Pi</h1>
+			<LatestEntry entry={firstEntry} />
+			<h2 className="text-2xl mb-3">Temp history</h2>
 			<ul className="space-y-1">
-				{entries.map((e: Entry) => (
-					<li key={e.id}>
-						{new Date(e.timestamp).toLocaleString()} - {e.value}°C
-					</li>
+				{restOfEntries.map((e: Entry) => (
+					<Entry entry={e} key={e.id} />
 				))}
 			</ul>
 		</div>
