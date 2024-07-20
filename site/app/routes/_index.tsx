@@ -61,11 +61,8 @@ function Entry({ entry }: { entry: Entry }) {
 	)
 }
 
-export default function Index() {
-	const entries = useLoaderData<typeof loader>()
+function useReloadOnView() {
 	const navigate = useNavigate()
-
-	const [firstEntry, ...restOfEntries] = entries
 
 	useEffect(() => {
 		document.addEventListener('visibilitychange', () => {
@@ -74,6 +71,12 @@ export default function Index() {
 			}
 		})
 	}, [navigate])
+}
+
+export default function Index() {
+	const entries = useLoaderData<typeof loader>()
+	const [firstEntry, ...restOfEntries] = entries
+	useReloadOnView()
 
 	return (
 		<div className="font-sans p-4 max-w-[500px] lg:max-w-[750px] mx-auto">
