@@ -46,7 +46,9 @@ function Entry({ entry }: { entry: Entry }) {
 		<tr>
 			<td>{formatDate(entry.timestamp)}</td>
 			<td className="text-right">{entry.dht11}°C</td>
-			<td className="text-right">{entry.ds18b20}°C</td>
+			<td className="text-right">
+				{entry.ds18b20 ? `${entry.ds18b20}°C` : null}
+			</td>
 		</tr>
 	)
 }
