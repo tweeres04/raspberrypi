@@ -1,3 +1,11 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+th {
+	@apply text-left
+}
+
+td, th {
+	@apply p-2
+}
