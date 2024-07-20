@@ -112,6 +112,7 @@ function EntryChart({ entries }: { entries: Entry[] }) {
 								pointStyle: false,
 							},
 						},
+						maintainAspectRatio: false,
 					},
 				})
 			}
@@ -123,7 +124,7 @@ function EntryChart({ entries }: { entries: Entry[] }) {
 	}, [entries])
 
 	return (
-		<canvas id="entry_chart" ref={chartRef} className="max-h-[300px]"></canvas>
+		<canvas id="entry_chart" ref={chartRef} className="max-h-[600px]"></canvas>
 	)
 }
 
