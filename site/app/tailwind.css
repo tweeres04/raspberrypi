@@ -7,5 +7,5 @@ th {
 }
 
 td, th {
-	@apply p-2
+	@apply py-2
 }
