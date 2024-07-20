@@ -4,7 +4,8 @@ import Database from 'better-sqlite3'
 
 import * as schema from '../../../db/schema'
 import { type Entry } from '../../../db/schema'
-import { useLoaderData } from '@remix-run/react'
+import { useLoaderData, useNavigate } from '@remix-run/react'
+import { useEffect } from 'react'
 
 export const meta: MetaFunction = () => {
 	return [
@@ -62,8 +63,17 @@ function Entry({ entry }: { entry: Entry }) {
 
 export default function Index() {
 	const entries = useLoaderData<typeof loader>()
+	const navigate = useNavigate()
 
 	const [firstEntry, ...restOfEntries] = entries
+
+	useEffect(() => {
+		document.addEventListener('visibilitychange', () => {
+			if (!document.hidden) {
+				navigate('.', { replace: true })
+			}
+		})
+	}, [])
 
 	return (
 		<div className="font-sans p-4 max-w-[500px] lg:max-w-[750px] mx-auto">
