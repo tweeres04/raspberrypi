@@ -43,10 +43,14 @@ function formatNumber(number: number) {
 
 function LatestEntry({ entry }: { entry: Entry }) {
 	return (
-		<div>
-			<div>Latest entry</div>
-			<div className="text-5xl">{formatNumber(entry.ds18b20 as number)}°C</div>
-			<div>{formatDate(entry.timestamp)}</div>
+		<div className="flex place-content-around">
+			<div>
+				<div>Latest entry</div>
+				<div className="text-7xl lg:text-8xl">
+					{formatNumber(entry.ds18b20 as number)}°C
+				</div>
+				<div>{formatDate(entry.timestamp)}</div>
+			</div>
 		</div>
 	)
 }
@@ -149,7 +153,7 @@ export default function Index() {
 	useReloadOnView()
 
 	return (
-		<div className="font-sans p-4 max-w-[500px] lg:max-w-[750px] mx-auto space-y-10">
+		<div className="font-sans p-4 max-w-[500px] lg:max-w-[750px] mx-auto space-y-14">
 			<h1 className="text-3xl mb-3">Ty&apos;s Raspberry Pi</h1>
 			<LatestEntry entry={firstEntry} />
 			<EntryChart entries={entries} />
