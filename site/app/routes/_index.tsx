@@ -1,11 +1,13 @@
 import { json, type MetaFunction } from '@remix-run/node'
 import { drizzle } from 'drizzle-orm/better-sqlite3'
 import Database from 'better-sqlite3'
+import Chart from 'chart.js/auto'
+import 'chartjs-adapter-date-fns'
 
 import * as schema from '../../../db/schema'
 import { type Entry } from '../../../db/schema'
 import { useLoaderData, useNavigate } from '@remix-run/react'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 
 export const meta: MetaFunction = () => {
 	return [
@@ -41,7 +43,7 @@ function formatNumber(number: number) {
 
 function LatestEntry({ entry }: { entry: Entry }) {
 	return (
-		<div className="my-10">
+		<div>
 			<div>Latest entry</div>
 			<div className="text-5xl">{formatNumber(entry.ds18b20 as number)}°C</div>
 			<div>{formatDate(entry.timestamp)}</div>
@@ -73,15 +75,57 @@ function useReloadOnView() {
 	}, [navigate])
 }
 
-export default function Index() {
-	const entries = useLoaderData<typeof loader>()
-	const [firstEntry, ...restOfEntries] = entries
-	useReloadOnView()
+function EntryChart({ entries }: { entries: Entry[] }) {
+	const chartRef = useRef<HTMLCanvasElement>(null)
+	useEffect(() => {
+		entries.reverse()
+		let chart = null
+		if (chartRef.current) {
+			{
+				chart = new Chart(chartRef.current, {
+					type: 'line',
+					data: {
+						labels: entries.map((e) => e.timestamp),
+						datasets: [
+							{
+								label: 'ds18b20',
+								data: entries.map((e) => e.ds18b20),
+							},
+							{
+								label: 'dt11',
+								data: entries.map((e) => e.dht11),
+							},
+						],
+					},
+					options: {
+						scales: {
+							x: {
+								type: 'time',
+							},
+						},
+						elements: {
+							point: {
+								pointStyle: false,
+							},
+						},
+					},
+				})
+			}
+		}
+
+		return function cleanup() {
+			chart?.destroy()
+		}
+	}, [entries])
 
 	return (
-		<div className="font-sans p-4 max-w-[500px] lg:max-w-[750px] mx-auto">
-			<h1 className="text-3xl mb-3">Ty&apos;s Raspberry Pi</h1>
-			<LatestEntry entry={firstEntry} />
+		<canvas id="entry_chart" ref={chartRef} className="max-h-[300px]"></canvas>
+	)
+}
+
+function TempHistory({ entries }: { entries: Entry[] }) {
+	return (
+		<div>
 			<h2 className="text-2xl mb-3">Temp history</h2>
 			<table className="w-full">
 				<thead>
@@ -91,10 +135,25 @@ export default function Index() {
 						<th className="text-right">ds18b20</th>
 					</tr>
 				</thead>
-				{restOfEntries.map((e: Entry) => (
+				{entries.map((e: Entry) => (
 					<Entry entry={e} key={e.id} />
 				))}
 			</table>
+		</div>
+	)
+}
+
+export default function Index() {
+	const entries = useLoaderData<typeof loader>()
+	const [firstEntry, ...restOfEntries] = entries
+	useReloadOnView()
+
+	return (
+		<div className="font-sans p-4 max-w-[500px] lg:max-w-[750px] mx-auto space-y-10">
+			<h1 className="text-3xl mb-3">Ty&apos;s Raspberry Pi</h1>
+			<LatestEntry entry={firstEntry} />
+			<EntryChart entries={entries} />
+			<TempHistory entries={restOfEntries} />
 		</div>
 	)
 }
