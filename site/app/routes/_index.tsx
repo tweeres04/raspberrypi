@@ -73,7 +73,7 @@ export default function Index() {
 				navigate('.', { replace: true })
 			}
 		})
-	}, [])
+	}, [navigate])
 
 	return (
 		<div className="font-sans p-4 max-w-[500px] lg:max-w-[750px] mx-auto">
