@@ -98,6 +98,7 @@ function EntryChart({ entries }: { entries: Entry[] }) {
 							{
 								label: 'dt11',
 								data: entries.map((e) => e.dht11),
+								hidden: true,
 							},
 						],
 					},
