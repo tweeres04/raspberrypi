@@ -154,7 +154,7 @@ export default function Index() {
 	useReloadOnView()
 
 	return (
-		<div className="font-sans p-4 max-w-[500px] lg:max-w-[750px] mx-auto space-y-14">
+		<div className="font-sans p-4 max-w-[500px] lg:max-w-[750px] mx-auto space-y-12">
 			<h1 className="text-3xl mb-3">Ty&apos;s Raspberry Pi</h1>
 			<LatestEntry entry={firstEntry} />
 			<EntryChart entries={entries} />
