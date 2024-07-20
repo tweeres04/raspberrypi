@@ -46,7 +46,7 @@ function LatestEntry({ entry }: { entry: Entry }) {
 		<div className="flex place-content-around">
 			<div>
 				<div>Latest entry</div>
-				<div className="text-7xl lg:text-8xl">
+				<div className="text-8xl">
 					{formatNumber(entry.ds18b20 as number)}°C
 				</div>
 				<div>{formatDate(entry.timestamp)}</div>
