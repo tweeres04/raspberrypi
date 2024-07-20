@@ -35,7 +35,7 @@ function LatestEntry({ entry }: { entry: Entry }) {
 	return (
 		<div className="my-10">
 			<div>Latest entry</div>
-			<div className="text-5xl">{entry.value}°C</div>
+			<div className="text-5xl">{entry.ds18b20}°C</div>
 			<div>{formatDate(entry.timestamp)}</div>
 		</div>
 	)
@@ -45,7 +45,8 @@ function Entry({ entry }: { entry: Entry }) {
 	return (
 		<tr>
 			<td>{formatDate(entry.timestamp)}</td>
-			<td className="text-right">{entry.value}°C</td>
+			<td className="text-right">{entry.dht11}°C</td>
+			<td className="text-right">{entry.ds18b20}°C</td>
 		</tr>
 	)
 }
@@ -64,7 +65,8 @@ export default function Index() {
 				<thead>
 					<tr>
 						<th>Timestamp</th>
-						<th className="text-right">Temperature</th>
+						<th className="text-right">dht11</th>
+						<th className="text-right">ds18b20</th>
 					</tr>
 				</thead>
 				{restOfEntries.map((e: Entry) => (

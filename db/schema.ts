@@ -10,7 +10,8 @@ export type Visit = typeof visits.$inferSelect
 export const entries = sqliteTable('entries', {
 	id: integer('id').primaryKey({ autoIncrement: true }),
 	timestamp: text('timestamp').notNull(),
-	value: real('value').notNull(),
+	dht11: real('dht11').notNull(),
+	ds18b20: real('ds18b20'),
 })
 
 export type Entry = typeof entries.$inferSelect

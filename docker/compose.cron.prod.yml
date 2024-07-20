@@ -7,4 +7,5 @@ services:
       - type: bind
         source: '/sys/bus/iio/devices/iio:device0/in_temp_input'
         target: '/app/in_temp_input'
+      - /sys/bus/w1/devices/28-0b22807f68cb/w1_slave:/app/w1_slave
       - ../database.db:/app/database.db
