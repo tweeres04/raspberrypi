@@ -31,11 +31,18 @@ function formatDate(date: string) {
 	}).format(new Date(date))
 }
 
+function formatNumber(number: number) {
+	return new Intl.NumberFormat('en-CA', {
+		style: 'decimal',
+		maximumFractionDigits: 1,
+	}).format(number)
+}
+
 function LatestEntry({ entry }: { entry: Entry }) {
 	return (
 		<div className="my-10">
 			<div>Latest entry</div>
-			<div className="text-5xl">{entry.ds18b20}°C</div>
+			<div className="text-5xl">{formatNumber(entry.ds18b20 as number)}°C</div>
 			<div>{formatDate(entry.timestamp)}</div>
 		</div>
 	)
@@ -45,9 +52,9 @@ function Entry({ entry }: { entry: Entry }) {
 	return (
 		<tr>
 			<td>{formatDate(entry.timestamp)}</td>
-			<td className="text-right">{entry.dht11}°C</td>
+			<td className="text-right">{formatNumber(entry.dht11)}°C</td>
 			<td className="text-right">
-				{entry.ds18b20 ? `${entry.ds18b20}°C` : null}
+				{entry.ds18b20 ? `${formatNumber(entry.ds18b20)}°C` : null}
 			</td>
 		</tr>
 	)
