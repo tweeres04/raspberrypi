@@ -36,19 +36,23 @@ async function getDs18b20Temp() {
 	return temp
 }
 
-const [dht11, ds18b20] = await Promise.all([getDht11Temp(), getDs18b20Temp()])
+async function main() {
+	const [dht11, ds18b20] = await Promise.all([getDht11Temp(), getDs18b20Temp()])
 
-const timestamp = new Date().toISOString()
+	const timestamp = new Date().toISOString()
 
-const dbEntry = {
-	timestamp,
-	dht11,
-	ds18b20,
+	const dbEntry = {
+		timestamp,
+		dht11,
+		ds18b20,
+	}
+
+	db.insert(entries)
+		.values(dbEntry)
+		.then(() => {
+			console.log('Inserted')
+			console.log(dbEntry)
+		})
 }
 
-db.insert(entries)
-	.values(dbEntry)
-	.then(() => {
-		console.log('Inserted')
-		console.log(dbEntry)
-	})
+main()
