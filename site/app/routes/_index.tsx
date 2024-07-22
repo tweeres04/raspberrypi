@@ -220,6 +220,7 @@ export default function Index() {
 					onChange={(event) => {
 						submit(event.currentTarget)
 					}}
+					className="mb-3"
 				>
 					<Select name="timespan" defaultValue="last_day">
 						<SelectTrigger className="w-[180px]">
