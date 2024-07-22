@@ -14,6 +14,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from '~/components/ui/select'
+import { maxBy, minBy, meanBy } from 'lodash-es'
 
 import * as schema from '../../../db/schema'
 import { type Entry } from '../../../db/schema'
@@ -173,6 +174,35 @@ function TempHistory({ entries }: { entries: Entry[] }) {
 	)
 }
 
+function Stats({ entries }: { entries: Entry[] }) {
+	const high = maxBy(entries, 'ds18b20')
+	const low = minBy(entries, 'ds18b20')
+	const average = meanBy(entries, 'ds18b20')
+
+	return (
+		<div className="flex place-content-between">
+			<div>
+				<div className="text-sm">High</div>
+				<div className="text-3xl lg:text-5xl">
+					{formatNumber(high.ds18b20)}°C
+				</div>
+				<div className="text-sm">{formatDate(high.timestamp)}</div>
+			</div>
+			<div>
+				<div className="text-sm">Low</div>
+				<div className="text-3xl lg:text-5xl">
+					{formatNumber(low.ds18b20)}°C
+				</div>
+				<div className="text-sm">{formatDate(low.timestamp)}</div>
+			</div>
+			<div>
+				<div className="text-sm">Average</div>
+				<div className="text-3xl lg:text-5xl">{formatNumber(average)}°C</div>
+			</div>
+		</div>
+	)
+}
+
 export default function Index() {
 	const entries = useLoaderData<typeof loader>()
 	const submit = useSubmit()
@@ -181,27 +211,30 @@ export default function Index() {
 
 	return (
 		<div className="font-sans p-4 max-w-[500px] lg:max-w-[750px] mx-auto space-y-12">
-			<h1 className="text-3xl mb-3">Ty&apos;s Raspberry Pi</h1>
+			<h1 className="text-3xl">Ty&apos;s Raspberry Pi</h1>
 			<LatestEntry entry={firstEntry} />
-			<h2 className="text-2xl mb-3">Temp history</h2>
-			<Form
-				method="GET"
-				onChange={(event) => {
-					submit(event.currentTarget)
-				}}
-			>
-				<Select name="timespan" defaultValue="last_day">
-					<SelectTrigger className="w-[180px]">
-						<SelectValue />
-					</SelectTrigger>
-					<SelectContent>
-						<SelectItem value="last_day">Last day</SelectItem>
-						<SelectItem value="last_hour">Last hour</SelectItem>
-						<SelectItem value="all">All</SelectItem>
-					</SelectContent>
-				</Select>
-			</Form>
-			<EntryChart entries={entries} />
+			<div>
+				<h2 className="text-2xl mb-5">Temp history</h2>
+				<Form
+					method="GET"
+					onChange={(event) => {
+						submit(event.currentTarget)
+					}}
+				>
+					<Select name="timespan" defaultValue="last_day">
+						<SelectTrigger className="w-[180px]">
+							<SelectValue />
+						</SelectTrigger>
+						<SelectContent>
+							<SelectItem value="last_day">Last day</SelectItem>
+							<SelectItem value="last_hour">Last hour</SelectItem>
+							<SelectItem value="all">All</SelectItem>
+						</SelectContent>
+					</Select>
+				</Form>
+				<EntryChart entries={entries} />
+			</div>
+			<Stats entries={entries} />
 			<TempHistory entries={restOfEntries} />
 		</div>
 	)
