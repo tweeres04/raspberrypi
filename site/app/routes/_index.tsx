@@ -17,10 +17,13 @@ export const meta: MetaFunction = () => {
 }
 
 export async function loader() {
+	const firstDs18b20EntryTimestamp = '2024-07-20T03:23:02.513Z'
 	const sqlite = new Database('../database.db')
 	const db = drizzle(sqlite, { schema, logger: true })
 
 	const entries = await db.query.entries.findMany({
+		where: (entries, { gte }) =>
+			gte(entries.timestamp, firstDs18b20EntryTimestamp),
 		orderBy: (entries, { desc }) => [desc(entries.id)],
 	})
 
