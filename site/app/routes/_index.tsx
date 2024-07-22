@@ -1,13 +1,27 @@
-import { json, type MetaFunction } from '@remix-run/node'
+import {
+	json,
+	type MetaFunction,
+	type LoaderFunctionArgs,
+} from '@remix-run/node'
 import { drizzle } from 'drizzle-orm/better-sqlite3'
 import Database from 'better-sqlite3'
 import Chart from 'chart.js/auto'
 import 'chartjs-adapter-date-fns'
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from '~/components/ui/select'
 
 import * as schema from '../../../db/schema'
 import { type Entry } from '../../../db/schema'
-import { useLoaderData, useNavigate } from '@remix-run/react'
+import { useLoaderData, useNavigate, Form, useSubmit } from '@remix-run/react'
 import { useEffect, useRef } from 'react'
+import { subDays, subHours } from 'date-fns'
+
+type Timespan = 'last_day' | 'last_hour' | 'all'
 
 export const meta: MetaFunction = () => {
 	return [
@@ -16,14 +30,24 @@ export const meta: MetaFunction = () => {
 	]
 }
 
-export async function loader() {
+export async function loader({ request }: LoaderFunctionArgs) {
 	const firstDs18b20EntryTimestamp = '2024-07-20T03:23:02.513Z'
 	const sqlite = new Database('../database.db')
 	const db = drizzle(sqlite, { schema, logger: true })
 
+	const url = new URL(request.url)
+	const timespan = url.searchParams.get('timespan') as Timespan
+	const now = new Date()
+
+	const startTimestamp =
+		timespan === 'last_hour'
+			? subHours(now, 1).toISOString()
+			: timespan === 'all'
+			? firstDs18b20EntryTimestamp
+			: subDays(now, 1).toISOString()
+
 	const entries = await db.query.entries.findMany({
-		where: (entries, { gte }) =>
-			gte(entries.timestamp, firstDs18b20EntryTimestamp),
+		where: (entries, { gte }) => gte(entries.timestamp, startTimestamp),
 		orderBy: (entries, { desc }) => [desc(entries.id)],
 	})
 
@@ -134,26 +158,24 @@ function EntryChart({ entries }: { entries: Entry[] }) {
 
 function TempHistory({ entries }: { entries: Entry[] }) {
 	return (
-		<div>
-			<h2 className="text-2xl mb-3">Temp history</h2>
-			<table className="w-full">
-				<thead>
-					<tr>
-						<th>Timestamp</th>
-						<th className="text-right">dht11</th>
-						<th className="text-right">ds18b20</th>
-					</tr>
-				</thead>
-				{entries.map((e: Entry) => (
-					<Entry entry={e} key={e.id} />
-				))}
-			</table>
-		</div>
+		<table className="w-full">
+			<thead>
+				<tr>
+					<th>Timestamp</th>
+					<th className="text-right">dht11</th>
+					<th className="text-right">ds18b20</th>
+				</tr>
+			</thead>
+			{entries.map((e: Entry) => (
+				<Entry entry={e} key={e.id} />
+			))}
+		</table>
 	)
 }
 
 export default function Index() {
 	const entries = useLoaderData<typeof loader>()
+	const submit = useSubmit()
 	const [firstEntry, ...restOfEntries] = entries
 	useReloadOnView()
 
@@ -161,6 +183,24 @@ export default function Index() {
 		<div className="font-sans p-4 max-w-[500px] lg:max-w-[750px] mx-auto space-y-12">
 			<h1 className="text-3xl mb-3">Ty&apos;s Raspberry Pi</h1>
 			<LatestEntry entry={firstEntry} />
+			<h2 className="text-2xl mb-3">Temp history</h2>
+			<Form
+				method="GET"
+				onChange={(event) => {
+					submit(event.currentTarget)
+				}}
+			>
+				<Select name="timespan" defaultValue="last_day">
+					<SelectTrigger className="w-[180px]">
+						<SelectValue />
+					</SelectTrigger>
+					<SelectContent>
+						<SelectItem value="last_day">Last day</SelectItem>
+						<SelectItem value="last_hour">Last hour</SelectItem>
+						<SelectItem value="all">All</SelectItem>
+					</SelectContent>
+				</Select>
+			</Form>
 			<EntryChart entries={entries} />
 			<TempHistory entries={restOfEntries} />
 		</div>
