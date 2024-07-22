@@ -18,7 +18,14 @@ import { maxBy, minBy, meanBy } from 'lodash-es'
 
 import * as schema from '../../../db/schema'
 import { type Entry } from '../../../db/schema'
-import { useLoaderData, useNavigate, Form, useSubmit } from '@remix-run/react'
+import {
+	useLoaderData,
+	useNavigate,
+	Form,
+	useSubmit,
+	useLocation,
+	useSearchParams,
+} from '@remix-run/react'
 import { useEffect, useRef } from 'react'
 import { subDays, subHours } from 'date-fns'
 
@@ -97,14 +104,15 @@ function Entry({ entry }: { entry: Entry }) {
 
 function useReloadOnView() {
 	const navigate = useNavigate()
+	const location = useLocation()
 
 	useEffect(() => {
 		document.addEventListener('visibilitychange', () => {
 			if (!document.hidden) {
-				navigate('.', { replace: true })
+				navigate(`.${location.search}`, { replace: true })
 			}
 		})
-	}, [navigate])
+	}, [location.search, navigate])
 }
 
 function EntryChart({ entries }: { entries: Entry[] }) {
@@ -208,6 +216,7 @@ export default function Index() {
 	const submit = useSubmit()
 	const [firstEntry, ...restOfEntries] = entries
 	useReloadOnView()
+	const [searchParams] = useSearchParams()
 
 	return (
 		<div className="font-sans p-4 max-w-[500px] lg:max-w-[750px] mx-auto space-y-12">
@@ -222,7 +231,10 @@ export default function Index() {
 					}}
 					className="mb-3"
 				>
-					<Select name="timespan" defaultValue="last_day">
+					<Select
+						name="timespan"
+						defaultValue={searchParams.get('timespan') ?? 'last_day'}
+					>
 						<SelectTrigger className="w-[180px]">
 							<SelectValue />
 						</SelectTrigger>
