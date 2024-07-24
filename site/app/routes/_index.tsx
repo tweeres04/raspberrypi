@@ -27,7 +27,7 @@ import {
 	useSearchParams,
 } from '@remix-run/react'
 import { useEffect, useRef } from 'react'
-import { subDays, subHours } from 'date-fns'
+import { addDays, addHours, subDays, subHours } from 'date-fns'
 
 type Timespan = 'last_day' | 'last_hour' | 'all'
 
@@ -47,19 +47,42 @@ export async function loader({ request }: LoaderFunctionArgs) {
 	const timespan = url.searchParams.get('timespan') as Timespan
 	const now = new Date()
 
-	const startTimestamp =
+	const [startTimestamp, comparisonStart, comparisonEnd] =
 		timespan === 'last_hour'
-			? subHours(now, 1).toISOString()
+			? [subHours(now, 1), subHours(now, 2), subHours(now, 1)].map((d) =>
+					d.toISOString()
+			  )
 			: timespan === 'all'
-			? firstDs18b20EntryTimestamp
-			: subDays(now, 1).toISOString()
+			? [firstDs18b20EntryTimestamp]
+			: // timespan === 'last_day'
 
-	const entries = await db.query.entries.findMany({
+			  [subDays(now, 1), subDays(now, 2), subDays(now, 1)].map((d) =>
+					d.toISOString()
+			  )
+
+	const entriesPromise = db.query.entries.findMany({
 		where: (entries, { gte }) => gte(entries.timestamp, startTimestamp),
 		orderBy: (entries, { desc }) => [desc(entries.id)],
 	})
 
-	return json<Entry[]>(entries)
+	let prevEntriesPromise: Promise<Entry[]> = Promise.resolve([])
+	if (comparisonStart && comparisonEnd) {
+		prevEntriesPromise = db.query.entries.findMany({
+			where: (entries, { and, gte, lt }) =>
+				and(
+					gte(entries.timestamp, comparisonStart),
+					lt(entries.timestamp, comparisonEnd)
+				),
+			orderBy: (entries, { desc }) => [desc(entries.id)],
+		})
+	}
+
+	const [entries, prevEntries] = await Promise.all([
+		entriesPromise,
+		prevEntriesPromise,
+	])
+
+	return json({ entries, prevEntries })
 }
 
 function formatDate(date: string) {
@@ -115,10 +138,17 @@ function useReloadOnView() {
 	}, [location.search, navigate])
 }
 
-function EntryChart({ entries }: { entries: Entry[] }) {
+function EntryChart({
+	entries,
+	prevEntries,
+}: {
+	entries: Entry[]
+	prevEntries: Entry[]
+}) {
 	const chartRef = useRef<HTMLCanvasElement>(null)
 	useEffect(() => {
 		entries.reverse()
+		prevEntries.reverse()
 		let chart = null
 		if (chartRef.current) {
 			{
@@ -130,10 +160,17 @@ function EntryChart({ entries }: { entries: Entry[] }) {
 							{
 								label: 'ds18b20',
 								data: entries.map((e) => e.ds18b20),
+								borderColor: '#38bdf8',
+							},
+							{
+								label: 'ds18b20 (previous period)',
+								data: prevEntries.map((e) => e.ds18b20),
+								borderColor: '#e7e5e4',
 							},
 							{
 								label: 'dt11',
 								data: entries.map((e) => e.dht11),
+								borderColor: '#78716c',
 								hidden: true,
 							},
 						],
@@ -158,7 +195,7 @@ function EntryChart({ entries }: { entries: Entry[] }) {
 		return function cleanup() {
 			chart?.destroy()
 		}
-	}, [entries])
+	}, [entries, prevEntries])
 
 	return (
 		<div className="h-[400px]">
@@ -214,7 +251,7 @@ function Stats({ entries }: { entries: Entry[] }) {
 }
 
 export default function Index() {
-	const entries = useLoaderData<typeof loader>()
+	const { entries, prevEntries } = useLoaderData<typeof loader>()
 	const submit = useSubmit()
 	const [firstEntry, ...restOfEntries] = entries
 	useReloadOnView()
@@ -247,7 +284,7 @@ export default function Index() {
 						</SelectContent>
 					</Select>
 				</Form>
-				<EntryChart entries={entries} />
+				<EntryChart entries={entries} prevEntries={prevEntries} />
 			</div>
 			<Stats entries={entries} />
 			<TempHistory entries={restOfEntries} />
