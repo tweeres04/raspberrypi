@@ -161,7 +161,9 @@ function EntryChart({ entries }: { entries: Entry[] }) {
 	}, [entries])
 
 	return (
-		<canvas id="entry_chart" ref={chartRef} className="max-h-[400px]"></canvas>
+		<div className="h-[400px]">
+			<canvas id="entry_chart" ref={chartRef}></canvas>
+		</div>
 	)
 }
 
