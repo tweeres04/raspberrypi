@@ -27,7 +27,7 @@ import {
 	useSearchParams,
 } from '@remix-run/react'
 import { useEffect, useRef } from 'react'
-import { addDays, addHours, subDays, subHours } from 'date-fns'
+import { subDays, subHours } from 'date-fns'
 
 type Timespan = 'last_day' | 'last_hour' | 'all'
 
@@ -55,7 +55,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
 			: timespan === 'all'
 			? [firstDs18b20EntryTimestamp]
 			: // timespan === 'last_day'
-
 			  [subDays(now, 1), subDays(now, 2), subDays(now, 1)].map((d) =>
 					d.toISOString()
 			  )
@@ -227,24 +226,20 @@ function Stats({ entries }: { entries: Entry[] }) {
 	const average = meanBy(entries, 'ds18b20')
 
 	return (
-		<div className="flex place-content-between">
+		<div className="flex place-content-between overflow-x-auto w-full gap-16">
 			<div>
 				<div className="text-sm">High</div>
-				<div className="text-3xl lg:text-5xl">
-					{formatNumber(high.ds18b20)}°C
-				</div>
+				<div className="text-5xl">{formatNumber(high.ds18b20)}°C</div>
 				<div className="text-sm">{formatDate(high.timestamp)}</div>
 			</div>
 			<div>
 				<div className="text-sm">Low</div>
-				<div className="text-3xl lg:text-5xl">
-					{formatNumber(low.ds18b20)}°C
-				</div>
+				<div className="text-5xl">{formatNumber(low.ds18b20)}°C</div>
 				<div className="text-sm">{formatDate(low.timestamp)}</div>
 			</div>
 			<div>
 				<div className="text-sm">Average</div>
-				<div className="text-3xl lg:text-5xl">{formatNumber(average)}°C</div>
+				<div className="text-5xl">{formatNumber(average)}°C</div>
 			</div>
 		</div>
 	)
