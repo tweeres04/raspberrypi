@@ -5,7 +5,6 @@ import {
 } from '@remix-run/node'
 import { drizzle } from 'drizzle-orm/better-sqlite3'
 import Database from 'better-sqlite3'
-import Chart from 'chart.js/auto'
 import 'chartjs-adapter-date-fns'
 import {
 	Select,
@@ -28,6 +27,8 @@ import {
 } from '@remix-run/react'
 import { useEffect, useRef } from 'react'
 import { subDays, subHours } from 'date-fns'
+
+import Chart from 'chart.js/auto'
 
 type Timespan = 'last_day' | 'last_hour' | 'all'
 
@@ -149,46 +150,45 @@ function EntryChart({
 		entries.reverse()
 		prevEntries.reverse()
 		let chart = null
+
 		if (chartRef.current) {
-			{
-				chart = new Chart(chartRef.current, {
-					type: 'line',
-					data: {
-						labels: entries.map((e) => e.timestamp),
-						datasets: [
-							{
-								label: 'ds18b20',
-								data: entries.map((e) => e.ds18b20),
-								borderColor: '#38bdf8',
-							},
-							{
-								label: 'ds18b20 (previous period)',
-								data: prevEntries.map((e) => e.ds18b20),
-								borderColor: '#e7e5e4',
-							},
-							{
-								label: 'dt11',
-								data: entries.map((e) => e.dht11),
-								borderColor: '#78716c',
-								hidden: true,
-							},
-						],
-					},
-					options: {
-						scales: {
-							x: {
-								type: 'time',
-							},
+			chart = new Chart(chartRef.current, {
+				type: 'line',
+				data: {
+					labels: entries.map((e) => e.timestamp),
+					datasets: [
+						{
+							label: 'ds18b20',
+							data: entries.map((e) => e.ds18b20),
+							borderColor: '#38bdf8',
 						},
-						elements: {
-							point: {
-								pointStyle: false,
-							},
+						{
+							label: 'ds18b20 (previous period)',
+							data: prevEntries.map((e) => e.ds18b20),
+							borderColor: '#e7e5e4',
 						},
-						maintainAspectRatio: false,
+						{
+							label: 'dt11',
+							data: entries.map((e) => e.dht11),
+							borderColor: '#0c4a6e',
+							hidden: true,
+						},
+					],
+				},
+				options: {
+					scales: {
+						x: {
+							type: 'time',
+						},
 					},
-				})
-			}
+					elements: {
+						point: {
+							pointStyle: false,
+						},
+					},
+					maintainAspectRatio: false,
+				},
+			})
 		}
 
 		return function cleanup() {
