@@ -41,17 +41,26 @@ async function main() {
 
 	const timestamp = new Date().toISOString()
 
-	const dbEntry = {
-		timestamp,
-		dht11,
-		ds18b20,
-	}
+	const dbEntries = [
+		dht11
+			? {
+					timestamp,
+					temperature: dht11,
+					source: 'dht11',
+			  }
+			: null,
+		{
+			timestamp,
+			temperature: ds18b20,
+			source: 'front_room',
+		},
+	].filter(Boolean) as schema.Entry[]
 
 	db.insert(entries)
-		.values(dbEntry)
+		.values(dbEntries)
 		.then(() => {
 			console.log('Inserted')
-			console.log(dbEntry)
+			console.log(dbEntries)
 		})
 }
 

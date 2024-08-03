@@ -2,7 +2,8 @@
 	"dependencies": {
 		"better-sqlite3": "^11.1.2",
 		"drizzle-kit": "^0.23.0",
-		"drizzle-orm": "^0.32.0"
+		"drizzle-orm": "^0.32.0",
+		"tsx": "^4.16.5"
 	},
 	"scripts": {
 		"deploy": "./deploy.sh",
@@ -10,6 +11,8 @@
 		"db:download": "scp raspberrypi:/home/tweeres/raspberrypi/database.db database.db",
 		"db:generate": "drizzle-kit generate",
 		"db:migrate": "drizzle-kit migrate",
-		"db:studio": "drizzle-kit studio"
-	}
+		"db:studio": "drizzle-kit studio",
+		"db:data_migrate:2024-08-03": "tsx db/2024-08-03_migration.ts"
+	},
+	"type": "module"
 }
