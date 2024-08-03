@@ -61,17 +61,24 @@ export async function loader({ request }: LoaderFunctionArgs) {
 			  )
 
 	const entriesPromise = db.query.entries.findMany({
-		where: (entries, { gte }) => gte(entries.timestamp, startTimestamp),
+		where: (entries, { gte, and, eq }) =>
+			and(
+				eq(entries.source, 'front_room'),
+				gte(entries.timestamp, startTimestamp)
+			),
 		orderBy: (entries, { desc }) => [desc(entries.id)],
 	})
 
 	let prevEntriesPromise: Promise<Entry[]> = Promise.resolve([])
 	if (comparisonStart && comparisonEnd) {
 		prevEntriesPromise = db.query.entries.findMany({
-			where: (entries, { and, gte, lt }) =>
+			where: (entries, { and, eq, gte, lt }) =>
 				and(
-					gte(entries.timestamp, comparisonStart),
-					lt(entries.timestamp, comparisonEnd)
+					eq(entries.source, 'front_room'),
+					and(
+						gte(entries.timestamp, comparisonStart),
+						lt(entries.timestamp, comparisonEnd)
+					)
 				),
 			orderBy: (entries, { desc }) => [desc(entries.id)],
 		})
@@ -104,9 +111,7 @@ function LatestEntry({ entry }: { entry: Entry }) {
 		<div className="flex place-content-around">
 			<div>
 				<div>Current temperature</div>
-				<div className="text-8xl">
-					{formatNumber(entry.ds18b20 as number)}°C
-				</div>
+				<div className="text-8xl">{formatNumber(entry.temperature)}°C</div>
 				<div>{formatDate(entry.timestamp)}</div>
 			</div>
 		</div>
@@ -117,9 +122,9 @@ function Entry({ entry }: { entry: Entry }) {
 	return (
 		<tr>
 			<td>{formatDate(entry.timestamp)}</td>
-			<td className="text-right">{formatNumber(entry.dht11)}°C</td>
+			<td className="text-right">{entry.source}</td>
 			<td className="text-right">
-				{entry.ds18b20 ? `${formatNumber(entry.ds18b20)}°C` : null}
+				{entry.temperature ? `${formatNumber(entry.temperature)}°C` : null}
 			</td>
 		</tr>
 	)
@@ -158,20 +163,14 @@ function EntryChart({
 					labels: entries.map((e) => e.timestamp),
 					datasets: [
 						{
-							label: 'ds18b20',
-							data: entries.map((e) => e.ds18b20),
+							label: 'Front room',
+							data: entries.map((e) => e.temperature),
 							borderColor: '#38bdf8',
 						},
 						{
-							label: 'ds18b20 (previous period)',
-							data: prevEntries.map((e) => e.ds18b20),
+							label: 'Front room (previous period)',
+							data: prevEntries.map((e) => e.temperature),
 							borderColor: '#e7e5e4',
-						},
-						{
-							label: 'dt11',
-							data: entries.map((e) => e.dht11),
-							borderColor: '#0c4a6e',
-							hidden: true,
 						},
 					],
 				},
@@ -209,8 +208,8 @@ function TempHistory({ entries }: { entries: Entry[] }) {
 			<thead>
 				<tr>
 					<th>Timestamp</th>
-					<th className="text-right">dht11</th>
-					<th className="text-right">ds18b20</th>
+					<th className="text-right">Source</th>
+					<th className="text-right">Temperature</th>
 				</tr>
 			</thead>
 			{entries.map((e: Entry) => (
@@ -221,20 +220,20 @@ function TempHistory({ entries }: { entries: Entry[] }) {
 }
 
 function Stats({ entries }: { entries: Entry[] }) {
-	const high = maxBy(entries, 'ds18b20')
-	const low = minBy(entries, 'ds18b20')
-	const average = meanBy(entries, 'ds18b20')
+	const high = maxBy(entries, 'temperature')
+	const low = minBy(entries, 'temperature')
+	const average = meanBy(entries, 'temperature')
 
 	return (
 		<div className="flex place-content-between overflow-x-auto w-full gap-16">
 			<div>
 				<div className="text-sm">High</div>
-				<div className="text-5xl">{formatNumber(high.ds18b20)}°C</div>
+				<div className="text-5xl">{formatNumber(high.temperature)}°C</div>
 				<div className="text-sm">{formatDate(high.timestamp)}</div>
 			</div>
 			<div>
 				<div className="text-sm">Low</div>
-				<div className="text-5xl">{formatNumber(low.ds18b20)}°C</div>
+				<div className="text-5xl">{formatNumber(low.temperature)}°C</div>
 				<div className="text-sm">{formatDate(low.timestamp)}</div>
 			</div>
 			<div>

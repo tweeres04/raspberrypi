@@ -9,6 +9,12 @@
 			"type": "node-terminal",
 			"request": "launch",
 			"command": "npm --prefix site run dev"
+		},
+		{
+			"name": "Debug data migration",
+			"type": "node-terminal",
+			"request": "launch",
+			"command": "npm run db:data_migrate:2024-08-03"
 		}
 	]
 }
