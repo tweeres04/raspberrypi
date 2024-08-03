@@ -29,6 +29,7 @@ import { useEffect, useRef } from 'react'
 import { subDays, subHours } from 'date-fns'
 
 import Chart from 'chart.js/auto'
+import { tempSourceLabels } from '~/lib/tempSourceLabels'
 
 type Timespan = 'last_day' | 'last_hour' | 'all'
 
@@ -122,7 +123,9 @@ function Entry({ entry }: { entry: Entry }) {
 	return (
 		<tr>
 			<td>{formatDate(entry.timestamp)}</td>
-			<td className="text-right">{entry.source}</td>
+			<td className="text-right">
+				{tempSourceLabels[entry.source as keyof typeof tempSourceLabels]}
+			</td>
 			<td className="text-right">
 				{entry.temperature ? `${formatNumber(entry.temperature)}°C` : null}
 			</td>
@@ -163,12 +166,12 @@ function EntryChart({
 					labels: entries.map((e) => e.timestamp),
 					datasets: [
 						{
-							label: 'Front room',
+							label: tempSourceLabels['front_room'],
 							data: entries.map((e) => e.temperature),
 							borderColor: '#38bdf8',
 						},
 						{
-							label: 'Front room (previous period)',
+							label: `${tempSourceLabels['front_room']} (previous period)`,
 							data: prevEntries.map((e) => e.temperature),
 							borderColor: '#e7e5e4',
 						},
