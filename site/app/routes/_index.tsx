@@ -13,7 +13,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from '~/components/ui/select'
-import { maxBy, minBy, meanBy } from 'lodash-es'
+import { maxBy, minBy, meanBy, groupBy } from 'lodash-es'
 
 import * as schema from '../../../db/schema'
 import { type Entry } from '../../../db/schema'
@@ -62,26 +62,19 @@ export async function loader({ request }: LoaderFunctionArgs) {
 			  )
 
 	const entriesPromise = db.query.entries.findMany({
-		where: (entries, { gte, and, eq }) =>
-			and(
-				eq(entries.source, 'front_room'),
-				gte(entries.timestamp, startTimestamp)
-			),
-		orderBy: (entries, { desc }) => [desc(entries.id)],
+		where: (entries, { gte }) => gte(entries.timestamp, startTimestamp),
+		orderBy: (entries, { desc }) => [desc(entries.timestamp)],
 	})
 
 	let prevEntriesPromise: Promise<Entry[]> = Promise.resolve([])
 	if (comparisonStart && comparisonEnd) {
 		prevEntriesPromise = db.query.entries.findMany({
-			where: (entries, { and, eq, gte, lt }) =>
+			where: (entries, { and, gte, lt }) =>
 				and(
-					eq(entries.source, 'front_room'),
-					and(
-						gte(entries.timestamp, comparisonStart),
-						lt(entries.timestamp, comparisonEnd)
-					)
+					gte(entries.timestamp, comparisonStart),
+					lt(entries.timestamp, comparisonEnd)
 				),
-			orderBy: (entries, { desc }) => [desc(entries.id)],
+			orderBy: (entries, { desc }) => [desc(entries.timestamp)],
 		})
 	}
 
@@ -160,21 +153,30 @@ function EntryChart({
 		let chart = null
 
 		if (chartRef.current) {
+			const groupedEntries = groupBy(entries, 'source')
+			const groupedPrevEntries = groupBy(prevEntries, 'source')
+
 			chart = new Chart(chartRef.current, {
 				type: 'line',
 				data: {
-					labels: entries.map((e) => e.timestamp),
+					labels: groupedEntries[Object.keys(groupedEntries)[0]].map(
+						(e) => e.timestamp
+					),
 					datasets: [
-						{
-							label: tempSourceLabels['front_room'],
-							data: entries.map((e) => e.temperature),
+						...Object.keys(groupedEntries).map((key) => ({
+							label: tempSourceLabels[key as keyof typeof tempSourceLabels],
+							data: groupedEntries[key].map((e) => e.temperature),
 							borderColor: '#38bdf8',
-						},
-						{
-							label: `${tempSourceLabels['front_room']} (previous period)`,
-							data: prevEntries.map((e) => e.temperature),
+							hidden: key === 'dht11',
+						})),
+						...Object.keys(groupedPrevEntries).map((key) => ({
+							label: `${
+								tempSourceLabels[key as keyof typeof tempSourceLabels]
+							} (previous period)`,
+							data: groupedPrevEntries[key].map((e) => e.temperature),
 							borderColor: '#e7e5e4',
-						},
+							hidden: key === 'dht11',
+						})),
 					],
 				},
 				options: {
