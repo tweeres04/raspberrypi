@@ -100,13 +100,18 @@ function formatNumber(number: number) {
 	}).format(number)
 }
 
-function LatestEntry({ entry }: { entry: Entry }) {
+function LatestEntry({ entries }: { entries: Entry[] }) {
+	const latestFrontRoomEntry = entries.filter(
+		(e) => e.source === 'front_room'
+	)[0]
 	return (
 		<div className="flex place-content-around">
 			<div>
 				<div>Current temperature</div>
-				<div className="text-8xl">{formatNumber(entry.temperature)}°C</div>
-				<div>{formatDate(entry.timestamp)}</div>
+				<div className="text-8xl">
+					{formatNumber(latestFrontRoomEntry.temperature)}°C
+				</div>
+				<div>{formatDate(latestFrontRoomEntry.timestamp)}</div>
 			</div>
 		</div>
 	)
@@ -159,9 +164,7 @@ function EntryChart({
 			chart = new Chart(chartRef.current, {
 				type: 'line',
 				data: {
-					labels: groupedEntries[Object.keys(groupedEntries)[0]].map(
-						(e) => e.timestamp
-					),
+					labels: groupedEntries['front_room'].map((e) => e.timestamp),
 					datasets: [
 						...Object.keys(groupedEntries).map((key) => ({
 							label: tempSourceLabels[key as keyof typeof tempSourceLabels],
@@ -252,14 +255,13 @@ function Stats({ entries }: { entries: Entry[] }) {
 export default function Index() {
 	const { entries, prevEntries } = useLoaderData<typeof loader>()
 	const submit = useSubmit()
-	const [firstEntry, ...restOfEntries] = entries
 	useReloadOnView()
 	const [searchParams] = useSearchParams()
 
 	return (
 		<div className="font-sans p-4 max-w-[500px] lg:max-w-[750px] mx-auto space-y-12">
 			<h1 className="text-3xl">Ty&apos;s Raspberry Pi</h1>
-			<LatestEntry entry={firstEntry} />
+			<LatestEntry entries={entries} />
 			<div>
 				<h2 className="text-2xl mb-5">Temp history</h2>
 				<Form
@@ -286,7 +288,7 @@ export default function Index() {
 				<EntryChart entries={entries} prevEntries={prevEntries} />
 			</div>
 			<Stats entries={entries} />
-			<TempHistory entries={restOfEntries} />
+			<TempHistory entries={entries} />
 		</div>
 	)
 }

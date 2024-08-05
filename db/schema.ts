@@ -1,4 +1,5 @@
 import { sqliteTable, integer, text, real } from 'drizzle-orm/sqlite-core'
+import { createInsertSchema } from 'drizzle-zod'
 
 export const visits = sqliteTable('visits', {
 	id: integer('id').primaryKey({ autoIncrement: true }),
@@ -26,3 +27,5 @@ export const entries = sqliteTable('entries_new', {
 
 export type Entry = typeof entries.$inferSelect
 export type NewEntry = typeof entries.$inferInsert
+
+export const insertEntrySchema = createInsertSchema(entries)
