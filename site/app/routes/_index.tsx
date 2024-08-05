@@ -228,9 +228,10 @@ function TempHistory({ entries }: { entries: Entry[] }) {
 }
 
 function Stats({ entries }: { entries: Entry[] }) {
-	const high = maxBy(entries, 'temperature')
-	const low = minBy(entries, 'temperature')
-	const average = meanBy(entries, 'temperature')
+	const frontRoomEntries = entries.filter((e) => e.source === 'front_room')
+	const high = maxBy(frontRoomEntries, 'temperature')
+	const low = minBy(frontRoomEntries, 'temperature')
+	const average = meanBy(frontRoomEntries, 'temperature')
 
 	return (
 		<div className="flex place-content-between overflow-x-auto w-full gap-16">
