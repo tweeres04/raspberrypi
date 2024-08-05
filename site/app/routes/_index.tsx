@@ -179,7 +179,7 @@ function EntryChart({
 							label: tempSourceLabels[key as keyof typeof tempSourceLabels],
 							data: groupedEntries[key],
 							borderColor: '#38bdf8',
-							hidden: key === 'dht11',
+							hidden: key === 'dht11' || key === 'test',
 						})),
 						...Object.keys(groupedPrevEntries).map((key) => ({
 							label: `${
@@ -187,7 +187,7 @@ function EntryChart({
 							} (previous period)`,
 							data: groupedPrevEntries[key],
 							borderColor: '#e7e5e4',
-							hidden: key === 'dht11',
+							hidden: key === 'dht11' || key === 'test',
 						})),
 					],
 				},
