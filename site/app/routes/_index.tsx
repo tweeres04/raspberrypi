@@ -26,7 +26,7 @@ import {
 	useSearchParams,
 } from '@remix-run/react'
 import { useEffect, useRef } from 'react'
-import { subDays, subHours } from 'date-fns'
+import { addDays, addHours, subDays, subHours } from 'date-fns'
 
 import Chart from 'chart.js/auto'
 import { tempSourceLabels } from '~/lib/tempSourceLabels'
@@ -147,28 +147,37 @@ function useReloadOnView() {
 function EntryChart({
 	entries,
 	prevEntries,
+	timespan,
 }: {
 	entries: Entry[]
 	prevEntries: Entry[]
+	timespan: Timespan | null
 }) {
 	const chartRef = useRef<HTMLCanvasElement>(null)
 	useEffect(() => {
 		entries.reverse()
-		prevEntries.reverse()
+		let prevEntriesCopy = [...prevEntries]
+		prevEntriesCopy.reverse()
+		prevEntriesCopy = prevEntriesCopy.map((pe) => ({
+			...pe,
+			timestamp:
+				timespan === 'last_hour'
+					? addHours(pe.timestamp, 1)
+					: addDays(pe.timestamp, 1),
+		}))
 		let chart = null
 
 		if (chartRef.current) {
 			const groupedEntries = groupBy(entries, 'source')
-			const groupedPrevEntries = groupBy(prevEntries, 'source')
+			const groupedPrevEntries = groupBy(prevEntriesCopy, 'source')
 
 			chart = new Chart(chartRef.current, {
 				type: 'line',
 				data: {
-					labels: groupedEntries['front_room'].map((e) => e.timestamp),
 					datasets: [
 						...Object.keys(groupedEntries).map((key) => ({
 							label: tempSourceLabels[key as keyof typeof tempSourceLabels],
-							data: groupedEntries[key].map((e) => e.temperature),
+							data: groupedEntries[key],
 							borderColor: '#38bdf8',
 							hidden: key === 'dht11',
 						})),
@@ -176,13 +185,17 @@ function EntryChart({
 							label: `${
 								tempSourceLabels[key as keyof typeof tempSourceLabels]
 							} (previous period)`,
-							data: groupedPrevEntries[key].map((e) => e.temperature),
+							data: groupedPrevEntries[key],
 							borderColor: '#e7e5e4',
 							hidden: key === 'dht11',
 						})),
 					],
 				},
 				options: {
+					parsing: {
+						xAxisKey: 'timestamp',
+						yAxisKey: 'temperature',
+					},
 					scales: {
 						x: {
 							type: 'time',
@@ -286,7 +299,11 @@ export default function Index() {
 						</SelectContent>
 					</Select>
 				</Form>
-				<EntryChart entries={entries} prevEntries={prevEntries} />
+				<EntryChart
+					entries={entries}
+					prevEntries={prevEntries}
+					timespan={searchParams.get('timespan') as Timespan | null}
+				/>
 			</div>
 			<Stats entries={entries} />
 			<TempHistory entries={entries} />
