@@ -1,10 +1,13 @@
 import { ActionFunctionArgs } from '@remix-run/node'
 import { ZodError } from 'zod'
 import { drizzle } from 'drizzle-orm/better-sqlite3'
+import { createInsertSchema } from 'drizzle-zod'
 import Database from 'better-sqlite3'
 
 import * as schema from '../../../db/schema'
-import { entries, insertEntrySchema } from '../../../db/schema'
+import { entries } from '../../../db/schema'
+
+const insertEntrySchema = createInsertSchema(entries)
 
 export async function action({ request }: ActionFunctionArgs) {
 	const formData = await request.formData()
