@@ -29,6 +29,7 @@ export async function action({ request }: ActionFunctionArgs) {
 		return new Response(null, { status: 201 })
 	} catch (err) {
 		if (err instanceof ZodError) {
+			console.error(err.message)
 			return new Response(err.message, { status: 400 })
 		} else {
 			throw err
