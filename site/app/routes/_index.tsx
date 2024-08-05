@@ -14,6 +14,7 @@ import {
 	SelectValue,
 } from '~/components/ui/select'
 import { maxBy, minBy, meanBy, groupBy } from 'lodash-es'
+import tailwindColors from 'tailwindcss/colors'
 
 import * as schema from '../../../db/schema'
 import { type Entry } from '../../../db/schema'
@@ -178,7 +179,12 @@ function EntryChart({
 						...Object.keys(groupedEntries).map((key) => ({
 							label: tempSourceLabels[key as keyof typeof tempSourceLabels],
 							data: groupedEntries[key],
-							borderColor: '#38bdf8',
+							borderColor:
+								key === 'front_room'
+									? tailwindColors.sky[400]
+									: key === 'master_bedroom'
+									? tailwindColors.emerald[400]
+									: tailwindColors.stone[200],
 							hidden: key === 'dht11' || key === 'test',
 						})),
 						...Object.keys(groupedPrevEntries).map((key) => ({
@@ -186,7 +192,7 @@ function EntryChart({
 								tempSourceLabels[key as keyof typeof tempSourceLabels]
 							} (previous period)`,
 							data: groupedPrevEntries[key],
-							borderColor: '#e7e5e4',
+							borderColor: tailwindColors.stone[200],
 							hidden: key === 'dht11' || key === 'test',
 						})),
 					],
