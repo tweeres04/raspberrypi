@@ -63,13 +63,22 @@ export async function loader({ request }: LoaderFunctionArgs) {
 			  )
 
 	const entriesPromise = db.query.entries.findMany({
-		where: (entries, { gte, and, sql, eq, not, inArray }) => {
+		where: (entries, { gte, and, sql, not, inArray }) => {
 			const commonPart = and(
 				gte(entries.timestamp, startTimestamp),
 				not(inArray(entries.source, ['test', 'dht11']))
 			)
 			return timespan === 'all'
-				? and(eq(sql`strftime('%M', timestamp)`, '00'), commonPart)
+				? and(
+						inArray(sql`strftime('%M', timestamp)`, [
+							'56',
+							'57',
+							'58',
+							'59',
+							'00',
+						]),
+						commonPart
+				  )
 				: commonPart
 		},
 		orderBy: (entries, { desc }) => [desc(entries.timestamp)],
