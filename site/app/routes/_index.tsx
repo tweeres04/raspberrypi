@@ -63,17 +63,26 @@ export async function loader({ request }: LoaderFunctionArgs) {
 			  )
 
 	const entriesPromise = db.query.entries.findMany({
-		where: (entries, { gte }) => gte(entries.timestamp, startTimestamp),
+		where: (entries, { gte, and, sql, eq, not, inArray }) => {
+			const commonPart = and(
+				gte(entries.timestamp, startTimestamp),
+				not(inArray(entries.source, ['test', 'dht11']))
+			)
+			return timespan === 'all'
+				? and(eq(sql`strftime('%M', timestamp)`, '00'), commonPart)
+				: commonPart
+		},
 		orderBy: (entries, { desc }) => [desc(entries.timestamp)],
 	})
 
 	let prevEntriesPromise: Promise<Entry[]> = Promise.resolve([])
 	if (comparisonStart && comparisonEnd) {
 		prevEntriesPromise = db.query.entries.findMany({
-			where: (entries, { and, gte, lt }) =>
+			where: (entries, { and, gte, lt, not, inArray }) =>
 				and(
 					gte(entries.timestamp, comparisonStart),
-					lt(entries.timestamp, comparisonEnd)
+					lt(entries.timestamp, comparisonEnd),
+					not(inArray(entries.source, ['test', 'dht11']))
 				),
 			orderBy: (entries, { desc }) => [desc(entries.timestamp)],
 		})
