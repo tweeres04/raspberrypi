@@ -210,7 +210,12 @@ function EntryChart({
 								tempSourceLabels[key as keyof typeof tempSourceLabels]
 							} (previous period)`,
 							data: groupedPrevEntries[key],
-							borderColor: tailwindColors.stone[200],
+							borderColor:
+								key === 'front_room'
+									? tailwindColors.sky[200]
+									: key === 'master_bedroom'
+									? tailwindColors.emerald[200]
+									: tailwindColors.stone[200],
 							hidden: key === 'dht11' || key === 'test',
 						})),
 					],
