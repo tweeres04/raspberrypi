@@ -1,0 +1,1 @@
+CREATE INDEX `entries_timestamp_index` ON `entries_new` (`timestamp`);

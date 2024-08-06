@@ -1,4 +1,10 @@
-import { sqliteTable, integer, text, real } from 'drizzle-orm/sqlite-core'
+import {
+	sqliteTable,
+	integer,
+	text,
+	real,
+	index,
+} from 'drizzle-orm/sqlite-core'
 
 export const visits = sqliteTable('visits', {
 	id: integer('id').primaryKey({ autoIncrement: true }),
@@ -17,12 +23,18 @@ export const entriesOld = sqliteTable('entries', {
 export type EntryOld = typeof entriesOld.$inferSelect
 export type NewEntryOld = typeof entriesOld.$inferInsert
 
-export const entries = sqliteTable('entries_new', {
-	id: integer('id').primaryKey({ autoIncrement: true }),
-	timestamp: text('timestamp').notNull(),
-	source: text('source').notNull(),
-	temperature: real('temperature').notNull(),
-})
+export const entries = sqliteTable(
+	'entries_new',
+	{
+		id: integer('id').primaryKey({ autoIncrement: true }),
+		timestamp: text('timestamp').notNull(),
+		source: text('source').notNull(),
+		temperature: real('temperature').notNull(),
+	},
+	(table) => ({
+		timestampSourceIdx: index('entries_timestamp_index').on(table.timestamp),
+	})
+)
 
 export type Entry = typeof entries.$inferSelect
 export type NewEntry = typeof entries.$inferInsert
