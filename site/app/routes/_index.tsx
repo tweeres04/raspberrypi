@@ -27,12 +27,19 @@ import {
 	useSearchParams,
 } from '@remix-run/react'
 import { useEffect, useRef } from 'react'
-import { addDays, addHours, subDays, subHours } from 'date-fns'
+import {
+	addDays,
+	addHours,
+	addWeeks,
+	subDays,
+	subHours,
+	subWeeks,
+} from 'date-fns'
 
 import Chart from 'chart.js/auto'
 import { tempSourceLabels } from '~/lib/tempSourceLabels'
 
-type Timespan = 'last_day' | 'last_hour' | 'all'
+type Timespan = 'last_week' | 'last_day' | 'last_hour' | 'all'
 
 export const meta: MetaFunction = () => {
 	return [
@@ -53,6 +60,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
 	const [startTimestamp, comparisonStart, comparisonEnd] =
 		timespan === 'last_hour'
 			? [subHours(now, 1), subHours(now, 2), subHours(now, 1)].map((d) =>
+					d.toISOString()
+			  )
+			: timespan === 'last_week'
+			? [subWeeks(now, 1), subWeeks(now, 2), subWeeks(now, 1)].map((d) =>
 					d.toISOString()
 			  )
 			: timespan === 'all'
@@ -182,6 +193,8 @@ function EntryChart({
 			timestamp:
 				timespan === 'last_hour'
 					? addHours(pe.timestamp, 1)
+					: timespan === 'last_week'
+					? addWeeks(pe.timestamp, 1)
 					: addDays(pe.timestamp, 1),
 		}))
 		let chart = null
@@ -322,8 +335,9 @@ export default function Index() {
 							<SelectValue />
 						</SelectTrigger>
 						<SelectContent>
-							<SelectItem value="last_day">Last day</SelectItem>
 							<SelectItem value="last_hour">Last hour</SelectItem>
+							<SelectItem value="last_day">Last day</SelectItem>
+							<SelectItem value="last_week">Last week</SelectItem>
 							<SelectItem value="all">All</SelectItem>
 						</SelectContent>
 					</Select>
