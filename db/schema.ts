@@ -7,7 +7,7 @@ import {
 } from 'drizzle-orm/sqlite-core'
 
 export const entries = sqliteTable(
-	'entries_new',
+	'entries',
 	{
 		id: integer('id').primaryKey({ autoIncrement: true }),
 		timestamp: text('timestamp').notNull(),

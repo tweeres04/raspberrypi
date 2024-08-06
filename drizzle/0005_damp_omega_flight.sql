@@ -1,0 +1,1 @@
+ALTER TABLE `entries_new` RENAME TO `entries`;
