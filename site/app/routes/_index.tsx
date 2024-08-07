@@ -249,6 +249,7 @@ function EntryChart({
 						},
 					},
 					maintainAspectRatio: false,
+					animation: false,
 				},
 			})
 		}
