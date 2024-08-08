@@ -130,10 +130,14 @@ function formatNumber(number: number) {
 	}).format(number)
 }
 
-function LatestEntry({ entries }: { entries: Entry[] }) {
-	const latestFrontRoomEntry = entries.filter(
-		(e) => e.source === 'front_room'
-	)[0]
+function LatestEntry({
+	entries,
+	source,
+}: {
+	entries: Entry[]
+	source: string
+}) {
+	const latestFrontRoomEntry = entries.filter((e) => e.source === source)[0]
 	return (
 		<div className="flex place-content-around">
 			<div>
@@ -291,8 +295,8 @@ function TempHistory({ entries }: { entries: Entry[] }) {
 	)
 }
 
-function Stats({ entries }: { entries: Entry[] }) {
-	const frontRoomEntries = entries.filter((e) => e.source === 'front_room')
+function Stats({ entries, source }: { entries: Entry[]; source: string }) {
+	const frontRoomEntries = entries.filter((e) => e.source === source)
 	const high = maxBy(frontRoomEntries, 'temperature')
 	const low = minBy(frontRoomEntries, 'temperature')
 	const average = meanBy(frontRoomEntries, 'temperature')
@@ -322,11 +326,37 @@ export default function Index() {
 	const submit = useSubmit()
 	useReloadOnView()
 	const [searchParams] = useSearchParams()
+	const sources = [...new Set(entries.map((e) => e.source))]
+	const selectedSource = searchParams.get('stats_source') ?? 'front_room'
 
 	return (
 		<div className="font-sans p-4 max-w-[500px] lg:max-w-[750px] mx-auto space-y-12">
-			<h1 className="text-3xl">Ty&apos;s Raspberry Pi</h1>
-			<LatestEntry entries={entries} />
+			<h1 className="text-3xl">Haultain Temps</h1>
+			<div className="space-y-5">
+				<h2 className="text-2xl mb-5">Stats</h2>
+				<Form
+					method="GET"
+					onChange={(event) => {
+						submit(event.currentTarget)
+					}}
+					className="mb-3"
+				>
+					<Select name="stats_source" defaultValue={selectedSource}>
+						<SelectTrigger className="w-[180px]">
+							<SelectValue />
+						</SelectTrigger>
+						<SelectContent>
+							{sources.map((s) => (
+								<SelectItem value={s} key={s}>
+									{tempSourceLabels[s]}
+								</SelectItem>
+							))}
+						</SelectContent>
+					</Select>
+				</Form>
+				<LatestEntry entries={entries} source={selectedSource} />
+				<Stats entries={entries} source={selectedSource} />
+			</div>
 			<div>
 				<h2 className="text-2xl mb-5">Temp history</h2>
 				<Form
@@ -357,7 +387,6 @@ export default function Index() {
 					timespan={searchParams.get('timespan') as Timespan | null}
 				/>
 			</div>
-			<Stats entries={entries} />
 			<TempHistory entries={entries} />
 		</div>
 	)
