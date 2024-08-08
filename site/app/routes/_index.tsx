@@ -215,6 +215,10 @@ function EntryChart({
 									? tailwindColors.sky[400]
 									: key === 'master_bedroom'
 									? tailwindColors.emerald[400]
+									: key === 'back_room'
+									? tailwindColors.violet[400]
+									: key === 'spare_bedroom'
+									? tailwindColors.amber[400]
 									: tailwindColors.stone[200],
 							hidden: key === 'dht11' || key === 'test',
 						})),
@@ -228,6 +232,10 @@ function EntryChart({
 									? tailwindColors.sky[200]
 									: key === 'master_bedroom'
 									? tailwindColors.emerald[200]
+									: key === 'back_room'
+									? tailwindColors.violet[200]
+									: key === 'spare_bedroom'
+									? tailwindColors.amber[200]
 									: tailwindColors.stone[200],
 							hidden: key === 'dht11' || key === 'test',
 						})),
