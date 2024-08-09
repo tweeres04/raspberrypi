@@ -172,7 +172,10 @@ function useReloadOnView() {
 	useEffect(() => {
 		document.addEventListener('visibilitychange', () => {
 			if (!document.hidden) {
-				navigate(`.${location.search}`, { replace: true })
+				navigate(`.${location.search}`, {
+					replace: true,
+					preventScrollReset: true,
+				})
 			}
 		})
 	}, [location.search, navigate])
