@@ -143,7 +143,8 @@ function LatestEntry({
 	const latestEntry = entries.filter((e) => e.source === source)[0]
 
 	return (
-		<div className="flex place-content-around">
+		// select-none is a workaround for https://github.com/radix-ui/primitives/issues/1658
+		<div className="flex place-content-around select-none">
 			<div>
 				<div>Current temperature</div>
 				<div className="text-8xl">
