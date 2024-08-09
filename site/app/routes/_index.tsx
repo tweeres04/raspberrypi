@@ -328,19 +328,54 @@ export default function Index() {
 	const [searchParams] = useSearchParams()
 	const sources = [...new Set(entries.map((e) => e.source))]
 	const selectedSource = searchParams.get('stats_source') ?? 'front_room'
+	const selectedTimespan = searchParams.get('timespan') ?? 'last_day'
 
 	return (
 		<div className="font-sans p-4 max-w-[500px] lg:max-w-[750px] mx-auto space-y-12">
 			<h1 className="text-3xl">Haultain Temps</h1>
+			<div>
+				<h2 className="text-2xl mb-5">Trends</h2>
+				<Form
+					method="GET"
+					onChange={(event) => {
+						submit(event.currentTarget, { preventScrollReset: true })
+					}}
+					className="mb-3"
+					preventScrollReset
+				>
+					{selectedSource !== 'front_room' ? (
+						<input type="hidden" name="stats_source" value={selectedSource} />
+					) : null}
+					<Select name="timespan" defaultValue={selectedTimespan}>
+						<SelectTrigger className="w-[180px]">
+							<SelectValue />
+						</SelectTrigger>
+						<SelectContent>
+							<SelectItem value="last_hour">Last hour</SelectItem>
+							<SelectItem value="last_day">Last day</SelectItem>
+							<SelectItem value="last_week">Last week</SelectItem>
+							<SelectItem value="all">All</SelectItem>
+						</SelectContent>
+					</Select>
+				</Form>
+				<EntryChart
+					entries={entries}
+					prevEntries={prevEntries}
+					timespan={selectedTimespan}
+				/>
+			</div>
 			<div className="space-y-5">
 				<h2 className="text-2xl mb-5">Stats</h2>
 				<Form
 					method="GET"
 					onChange={(event) => {
-						submit(event.currentTarget)
+						submit(event.currentTarget, { preventScrollReset: true })
 					}}
 					className="mb-3"
 				>
+					{selectedTimespan !== 'last_day' ? (
+						<input type="hidden" name="timespan" value={selectedTimespan} />
+					) : null}
 					<Select name="stats_source" defaultValue={selectedSource}>
 						<SelectTrigger className="w-[180px]">
 							<SelectValue />
@@ -358,36 +393,9 @@ export default function Index() {
 				<Stats entries={entries} source={selectedSource} />
 			</div>
 			<div>
-				<h2 className="text-2xl mb-5">Temp history</h2>
-				<Form
-					method="GET"
-					onChange={(event) => {
-						submit(event.currentTarget)
-					}}
-					className="mb-3"
-				>
-					<Select
-						name="timespan"
-						defaultValue={searchParams.get('timespan') ?? 'last_day'}
-					>
-						<SelectTrigger className="w-[180px]">
-							<SelectValue />
-						</SelectTrigger>
-						<SelectContent>
-							<SelectItem value="last_hour">Last hour</SelectItem>
-							<SelectItem value="last_day">Last day</SelectItem>
-							<SelectItem value="last_week">Last week</SelectItem>
-							<SelectItem value="all">All</SelectItem>
-						</SelectContent>
-					</Select>
-				</Form>
-				<EntryChart
-					entries={entries}
-					prevEntries={prevEntries}
-					timespan={searchParams.get('timespan') as Timespan | null}
-				/>
+				<h2 className="text-2xl mb-5">History</h2>
+				<TempHistory entries={entries} />
 			</div>
-			<TempHistory entries={entries} />
 		</div>
 	)
 }
