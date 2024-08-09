@@ -13,6 +13,8 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from '~/components/ui/select'
+import { Checkbox } from '~/components/ui/checkbox'
+import { Label } from '~/components/ui/label'
 import { maxBy, minBy, meanBy, groupBy } from 'lodash-es'
 import tailwindColors from 'tailwindcss/colors'
 
@@ -55,6 +57,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 	const url = new URL(request.url)
 	const timespan = url.searchParams.get('timespan') as Timespan
+	const showComparison = url.searchParams.has('show_comparison')
 	const now = new Date()
 
 	const [startTimestamp, comparisonStart, comparisonEnd] =
@@ -96,7 +99,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 	})
 
 	let prevEntriesPromise: Promise<Entry[]> = Promise.resolve([])
-	if (comparisonStart && comparisonEnd) {
+	if (showComparison && comparisonStart && comparisonEnd) {
 		prevEntriesPromise = db.query.entries.findMany({
 			where: (entries, { and, gte, lt, not, inArray }) =>
 				and(
@@ -332,6 +335,7 @@ export default function Index() {
 	const sources = [...new Set(entries.map((e) => e.source))]
 	const selectedSource = searchParams.get('stats_source') ?? 'front_room'
 	const selectedTimespan = searchParams.get('timespan') ?? 'last_day'
+	const showComparison = searchParams.get('show_comparison')
 
 	return (
 		<div className="font-sans p-4 max-w-[500px] lg:max-w-[750px] mx-auto space-y-12">
@@ -349,17 +353,23 @@ export default function Index() {
 					{selectedSource !== 'front_room' ? (
 						<input type="hidden" name="stats_source" value={selectedSource} />
 					) : null}
-					<Select name="timespan" defaultValue={selectedTimespan}>
-						<SelectTrigger className="w-[180px]">
-							<SelectValue />
-						</SelectTrigger>
-						<SelectContent>
-							<SelectItem value="last_hour">Last hour</SelectItem>
-							<SelectItem value="last_day">Last day</SelectItem>
-							<SelectItem value="last_week">Last week</SelectItem>
-							<SelectItem value="all">All</SelectItem>
-						</SelectContent>
-					</Select>
+					<div className="flex gap-5 place-items-center">
+						<Select name="timespan" defaultValue={selectedTimespan}>
+							<SelectTrigger className="w-[180px]">
+								<SelectValue />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value="last_hour">Last hour</SelectItem>
+								<SelectItem value="last_day">Last day</SelectItem>
+								<SelectItem value="last_week">Last week</SelectItem>
+								<SelectItem value="all">All</SelectItem>
+							</SelectContent>
+						</Select>
+						<div className="flex gap-1 place-items-center">
+							<Checkbox name="show_comparison" id="show_comparison" />{' '}
+							<Label htmlFor="show_comparison">Show comparisons</Label>
+						</div>
+					</div>
 				</Form>
 				<EntryChart
 					entries={entries}
@@ -378,6 +388,9 @@ export default function Index() {
 				>
 					{selectedTimespan !== 'last_day' ? (
 						<input type="hidden" name="timespan" value={selectedTimespan} />
+					) : null}
+					{showComparison ? (
+						<input type="hidden" name="show_comparison" value="on" />
 					) : null}
 					<Select name="stats_source" defaultValue={selectedSource}>
 						<SelectTrigger className="w-[180px]">
