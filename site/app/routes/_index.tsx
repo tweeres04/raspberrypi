@@ -140,15 +140,16 @@ function LatestEntry({
 	entries: Entry[]
 	source: string
 }) {
-	const latestFrontRoomEntry = entries.filter((e) => e.source === source)[0]
+	const latestEntry = entries.filter((e) => e.source === source)[0]
+
 	return (
 		<div className="flex place-content-around">
 			<div>
 				<div>Current temperature</div>
 				<div className="text-8xl">
-					{formatNumber(latestFrontRoomEntry.temperature)}°C
+					{formatNumber(latestEntry.temperature)}°C
 				</div>
-				<div>{formatDate(latestFrontRoomEntry.timestamp)}</div>
+				<div>{formatDate(latestEntry.timestamp)}</div>
 			</div>
 		</div>
 	)
@@ -195,7 +196,8 @@ function EntryChart({
 }) {
 	const chartRef = useRef<HTMLCanvasElement>(null)
 	useEffect(() => {
-		entries.reverse()
+		let entriesCopy = [...entries]
+		entriesCopy = entriesCopy.reverse()
 		let prevEntriesCopy = [...prevEntries]
 		prevEntriesCopy.reverse()
 		prevEntriesCopy = prevEntriesCopy.map((pe) => ({
@@ -210,7 +212,7 @@ function EntryChart({
 		let chart = null
 
 		if (chartRef.current) {
-			const groupedEntries = groupBy(entries, 'source')
+			const groupedEntries = groupBy(entriesCopy, 'source')
 			const groupedPrevEntries = groupBy(prevEntriesCopy, 'source')
 
 			chart = new Chart(chartRef.current, {
@@ -332,10 +334,10 @@ export default function Index() {
 	const submit = useSubmit()
 	useReloadOnView()
 	const [searchParams] = useSearchParams()
-	const sources = [...new Set(entries.map((e) => e.source))]
+	const sources = [...new Set(entries.map((e: Entry) => e.source))]
 	const selectedSource = searchParams.get('stats_source') ?? 'front_room'
 	const selectedTimespan = searchParams.get('timespan') ?? 'last_day'
-	const showComparison = searchParams.get('show_comparison')
+	const showComparison = searchParams.has('show_comparison')
 
 	return (
 		<div className="font-sans p-4 max-w-[500px] lg:max-w-[750px] mx-auto space-y-12">
@@ -366,7 +368,11 @@ export default function Index() {
 							</SelectContent>
 						</Select>
 						<div className="flex gap-1 place-items-center">
-							<Checkbox name="show_comparison" id="show_comparison" />{' '}
+							<Checkbox
+								name="show_comparison"
+								id="show_comparison"
+								defaultChecked={showComparison}
+							/>{' '}
 							<Label htmlFor="show_comparison">Show comparisons</Label>
 						</div>
 					</div>
