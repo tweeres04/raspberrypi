@@ -1,0 +1,16 @@
+{
+	"name": "Haultain Temps",
+	"short_name": "Temps",
+	"description": "Haultain Temps",
+	"start_url": "/",
+	"display": "standalone",
+	"background_color": "#a78bfa",
+	"theme_color": "#a78bfa",
+	"icons": [
+		{
+			"src": "/hot.png",
+			"sizes": "any",
+			"type": "image/png"
+		}
+	]
+}
