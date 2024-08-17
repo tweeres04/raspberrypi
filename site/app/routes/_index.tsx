@@ -80,7 +80,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
 		where: (entries, { gte, and, sql, not, inArray }) => {
 			const commonPart = and(
 				gte(entries.timestamp, startTimestamp),
-				not(inArray(entries.source, ['test', 'dht11']))
+				not(inArray(entries.source, ['test', 'dht11'])),
+				gte(entries.temperature, -100) // arduinos are recording -127 temps every once in a while for some reason. Workaround for now.
 			)
 			return timespan === 'all'
 				? and(
@@ -105,7 +106,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
 				and(
 					gte(entries.timestamp, comparisonStart),
 					lt(entries.timestamp, comparisonEnd),
-					not(inArray(entries.source, ['test', 'dht11']))
+					not(inArray(entries.source, ['test', 'dht11'])),
+					gte(entries.temperature, -100) // arduinos are recording -127 temps every once in a while for some reason. Workaround for now.
 				),
 			orderBy: (entries, { desc }) => [desc(entries.timestamp)],
 		})
