@@ -86,11 +86,29 @@ export async function loader({ request }: LoaderFunctionArgs) {
 			return timespan === 'all'
 				? and(
 						inArray(sql`strftime('%M', timestamp)`, [
+							// decimate to 1 sample per hour
 							'56',
 							'57',
 							'58',
 							'59',
 							'00',
+						]),
+						commonPart
+				  )
+				: timespan === 'last_week'
+				? and(
+						inArray(sql`strftime('%M', timestamp)`, [
+							// decimate to 2 samples per hour
+							'56',
+							'57',
+							'58',
+							'59',
+							'00',
+							'26',
+							'27',
+							'28',
+							'29',
+							'30',
 						]),
 						commonPart
 				  )
