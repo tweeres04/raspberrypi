@@ -45,8 +45,8 @@ type Timespan = 'last_week' | 'last_day' | 'last_hour' | 'all'
 
 export const meta: MetaFunction = () => {
 	return [
-		{ title: "Ty's Raspberry Pi" },
-		{ name: 'description', content: "Ty's Raspberry Pi website" },
+		{ title: 'Haultain Temps' },
+		{ name: 'description', content: 'Haultain Temps' },
 	]
 }
 
