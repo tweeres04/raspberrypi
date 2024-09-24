@@ -252,6 +252,8 @@ function EntryChart({
 									? tailwindColors.violet[400]
 									: key === 'spare_bedroom'
 									? tailwindColors.amber[400]
+									: key === 'back_yard'
+									? tailwindColors.lime[400]
 									: tailwindColors.stone[200],
 							hidden: key === 'dht11' || key === 'test',
 						})),
@@ -269,6 +271,8 @@ function EntryChart({
 									? tailwindColors.violet[200]
 									: key === 'spare_bedroom'
 									? tailwindColors.amber[200]
+									: key === 'back_yard'
+									? tailwindColors.lime[200]
 									: tailwindColors.stone[200],
 							hidden: key === 'dht11' || key === 'test',
 						})),
