@@ -5,6 +5,7 @@ import {
 	Scripts,
 	ScrollRestoration,
 } from '@remix-run/react'
+import '@fontsource-variable/nunito'
 import './tailwind.css'
 
 export function Layout({ children }: { children: React.ReactNode }) {

@@ -3,9 +3,10 @@
 @tailwind utilities;
 
 th {
-	@apply text-left
+	@apply text-left;
 }
 
-td, th {
-	@apply py-2
+td,
+th {
+	@apply py-2;
 }
