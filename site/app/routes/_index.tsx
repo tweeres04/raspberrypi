@@ -131,10 +131,20 @@ export async function loader({ request }: LoaderFunctionArgs) {
 		})
 	}
 
-	const [entries, prevEntries] = await Promise.all([
+	let [entries, prevEntries] = await Promise.all([
 		entriesPromise,
 		prevEntriesPromise,
 	])
+
+	const decimator = (entries: Entry[]) => {
+		const maxEntries = 1500;
+		if (entries.length <= maxEntries) return entries;
+		const step = Math.ceil(entries.length / maxEntries);
+		return entries.filter((_, i) => i % step === 0);
+	};
+	
+	entries = decimator(entries);
+	prevEntries = decimator(prevEntries);
 
 	return json({ entries, prevEntries })
 }
