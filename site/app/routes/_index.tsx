@@ -77,43 +77,12 @@ export async function loader({ request }: LoaderFunctionArgs) {
 			  )
 
 	const entriesPromise = db.query.entries.findMany({
-		where: (entries, { gte, and, sql, not, inArray }) => {
-			const commonPart = and(
+		where: (entries, { gte, and, not, inArray }) =>
+			and(
 				gte(entries.timestamp, startTimestamp),
 				not(inArray(entries.source, ['test', 'dht11'])),
 				gte(entries.temperature, -100) // arduinos are recording -127 temps every once in a while for some reason. Workaround for now.
-			)
-			return timespan === 'all'
-				? and(
-						inArray(sql`strftime('%M', timestamp)`, [
-							// decimate to 1 sample per hour
-							'56',
-							'57',
-							'58',
-							'59',
-							'00',
-						]),
-						commonPart
-				  )
-				: timespan === 'last_week'
-				? and(
-						inArray(sql`strftime('%M', timestamp)`, [
-							// decimate to 2 samples per hour
-							'56',
-							'57',
-							'58',
-							'59',
-							'00',
-							'26',
-							'27',
-							'28',
-							'29',
-							'30',
-						]),
-						commonPart
-				  )
-				: commonPart
-		},
+			),
 		orderBy: (entries, { desc }) => [desc(entries.timestamp)],
 	})
 
@@ -137,14 +106,14 @@ export async function loader({ request }: LoaderFunctionArgs) {
 	])
 
 	const decimator = (entries: Entry[]) => {
-		const maxEntries = 1500;
-		if (entries.length <= maxEntries) return entries;
-		const step = Math.ceil(entries.length / maxEntries);
-		return entries.filter((_, i) => i % step === 0);
-	};
-	
-	entries = decimator(entries);
-	prevEntries = decimator(prevEntries);
+		const maxEntries = 1500
+		if (entries.length <= maxEntries) return entries
+		const step = Math.ceil(entries.length / maxEntries)
+		return entries.filter((_, i) => i % step === 0)
+	}
+
+	entries = decimator(entries)
+	prevEntries = decimator(prevEntries)
 
 	return json({ entries, prevEntries })
 }
