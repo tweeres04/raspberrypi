@@ -41,6 +41,20 @@ import {
 import Chart from 'chart.js/auto'
 import { tempSourceLabels } from '~/lib/tempSourceLabels'
 
+function getSourceColor(source: string) {
+	return source === 'front_room'
+		? tailwindColors.sky
+		: source === 'master_bedroom'
+		? tailwindColors.emerald
+		: source === 'back_room'
+		? tailwindColors.violet
+		: source === 'spare_bedroom'
+		? tailwindColors.amber
+		: source === 'back_yard'
+		? tailwindColors.lime
+		: tailwindColors.stone
+}
+
 type Timespan = 'last_week' | 'last_day' | 'last_hour' | 'all'
 
 export const meta: MetaFunction = () => {
@@ -142,8 +156,13 @@ function LatestEntry({
 	const latestEntry = entries.filter((e) => e.source === source)[0]
 
 	return (
-		// select-none is a workaround for https://github.com/radix-ui/primitives/issues/1658
-		<div className="select-none">
+		<div
+			className="w-full lg:w-auto p-5 shadow rounded"
+			style={{
+				borderLeft: `10px solid ${getSourceColor(source)[400]}`,
+				backgroundColor: getSourceColor(source)[100],
+			}}
+		>
 			<div>{tempSourceLabels[source]}</div>
 			<div className="text-8xl">{formatNumber(latestEntry.temperature)}°C</div>
 			<div>{formatDate(latestEntry.timestamp)}</div>
@@ -220,18 +239,7 @@ function EntryChart({
 							.map((key) => ({
 								label: tempSourceLabels[key as keyof typeof tempSourceLabels],
 								data: groupedEntries[key],
-								borderColor:
-									key === 'front_room'
-										? tailwindColors.sky[400]
-										: key === 'master_bedroom'
-										? tailwindColors.emerald[400]
-										: key === 'back_room'
-										? tailwindColors.violet[400]
-										: key === 'spare_bedroom'
-										? tailwindColors.amber[400]
-										: key === 'back_yard'
-										? tailwindColors.lime[400]
-										: tailwindColors.stone[200],
+								borderColor: getSourceColor(key)[400],
 								hidden: key === 'dht11' || key === 'test',
 							})),
 						...Object.keys(groupedPrevEntries).map((key) => ({
@@ -239,18 +247,7 @@ function EntryChart({
 								tempSourceLabels[key as keyof typeof tempSourceLabels]
 							} (previous period)`,
 							data: groupedPrevEntries[key],
-							borderColor:
-								key === 'front_room'
-									? tailwindColors.sky[200]
-									: key === 'master_bedroom'
-									? tailwindColors.emerald[200]
-									: key === 'back_room'
-									? tailwindColors.violet[200]
-									: key === 'spare_bedroom'
-									? tailwindColors.amber[200]
-									: key === 'back_yard'
-									? tailwindColors.lime[200]
-									: tailwindColors.stone[200],
+							borderColor: getSourceColor(key)[200],
 							hidden: key === 'dht11' || key === 'test',
 						})),
 					],
@@ -333,7 +330,13 @@ function Stats({ entries, source }: { entries: Entry[]; source: string }) {
 	const average = meanBy(frontRoomEntries, 'temperature')
 
 	return (
-		<div>
+		<div
+			className="p-5 rounded shadow"
+			style={{
+				borderLeft: `10px solid ${getSourceColor(source)[400]}`,
+				backgroundColor: getSourceColor(source)[100],
+			}}
+		>
 			<h3 className="text-lg mb-2">{tempSourceLabels[source]}</h3>
 			<div className="flex place-content-between overflow-x-auto w-full gap-16">
 				<div>
@@ -368,7 +371,7 @@ export default function Index() {
 	const showComparison = searchParams.has('show_comparison')
 
 	return (
-		<div className="font-sans p-4 max-w-[500px] lg:max-w-[750px] mx-auto space-y-12">
+		<div className="font-sans p-2 max-w-[500px] lg:max-w-[750px] mx-auto space-y-12">
 			<h1 className="text-3xl">Haultain Temps</h1>
 			<div>
 				<h2 className="text-2xl mb-5">Trends</h2>
@@ -413,7 +416,7 @@ export default function Index() {
 			</div>
 			<div className="space-y-10">
 				<h2 className="text-2xl mb-5">Latest temperature</h2>
-				<div className="flex gap-10 flex-wrap justify-between">
+				<div className="flex gap-x-5 gap-y-10 flex-wrap justify-between">
 					{sources.map((s) => (
 						<LatestEntry entries={entries} source={s} />
 					))}
