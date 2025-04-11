@@ -154,13 +154,13 @@ function LatestEntry({
 	source: string
 }) {
 	const latestEntry = entries.filter((e) => e.source === source)[0]
+	const sourceColor = getSourceColor(source)
 
 	return (
 		<div
-			className="w-full lg:w-auto p-5 shadow rounded"
+			className="w-full lg:w-auto p-5 shadow rounded text-white"
 			style={{
-				borderLeft: `10px solid ${getSourceColor(source)[400]}`,
-				backgroundColor: getSourceColor(source)[100],
+				background: `linear-gradient(60deg, ${sourceColor[500]} 60%, ${sourceColor[300]} 100%)`,
 			}}
 		>
 			<div>{tempSourceLabels[source]}</div>
@@ -329,12 +329,13 @@ function Stats({ entries, source }: { entries: Entry[]; source: string }) {
 	const low = minBy(frontRoomEntries, 'temperature')
 	const average = meanBy(frontRoomEntries, 'temperature')
 
+	const sourceColor = getSourceColor(source)
+
 	return (
 		<div
-			className="p-5 rounded shadow"
+			className="p-5 rounded shadow text-white"
 			style={{
-				borderLeft: `10px solid ${getSourceColor(source)[400]}`,
-				backgroundColor: getSourceColor(source)[100],
+				background: `linear-gradient(60deg, ${sourceColor[500]} 60%, ${sourceColor[300]} 100%)`,
 			}}
 		>
 			<h3 className="text-lg mb-2">{tempSourceLabels[source]}</h3>
