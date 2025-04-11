@@ -266,6 +266,9 @@ function EntryChart({
 						x: {
 							type: 'time',
 						},
+						y: {
+							position: 'right',
+						},
 					},
 					elements: {
 						point: {
