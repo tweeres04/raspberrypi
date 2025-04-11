@@ -143,14 +143,10 @@ function LatestEntry({
 
 	return (
 		// select-none is a workaround for https://github.com/radix-ui/primitives/issues/1658
-		<div className="flex place-content-around select-none">
-			<div>
-				<div>Current temperature</div>
-				<div className="text-8xl">
-					{formatNumber(latestEntry.temperature)}°C
-				</div>
-				<div>{formatDate(latestEntry.timestamp)}</div>
-			</div>
+		<div className="select-none">
+			<div>{tempSourceLabels[source]}</div>
+			<div className="text-8xl">{formatNumber(latestEntry.temperature)}°C</div>
+			<div>{formatDate(latestEntry.timestamp)}</div>
 		</div>
 	)
 }
@@ -219,23 +215,25 @@ function EntryChart({
 				type: 'line',
 				data: {
 					datasets: [
-						...Object.keys(groupedEntries).map((key) => ({
-							label: tempSourceLabels[key as keyof typeof tempSourceLabels],
-							data: groupedEntries[key],
-							borderColor:
-								key === 'front_room'
-									? tailwindColors.sky[400]
-									: key === 'master_bedroom'
-									? tailwindColors.emerald[400]
-									: key === 'back_room'
-									? tailwindColors.violet[400]
-									: key === 'spare_bedroom'
-									? tailwindColors.amber[400]
-									: key === 'back_yard'
-									? tailwindColors.lime[400]
-									: tailwindColors.stone[200],
-							hidden: key === 'dht11' || key === 'test',
-						})),
+						...Object.keys(groupedEntries)
+							.toSorted((a, b) => a.localeCompare(b))
+							.map((key) => ({
+								label: tempSourceLabels[key as keyof typeof tempSourceLabels],
+								data: groupedEntries[key],
+								borderColor:
+									key === 'front_room'
+										? tailwindColors.sky[400]
+										: key === 'master_bedroom'
+										? tailwindColors.emerald[400]
+										: key === 'back_room'
+										? tailwindColors.violet[400]
+										: key === 'spare_bedroom'
+										? tailwindColors.amber[400]
+										: key === 'back_yard'
+										? tailwindColors.lime[400]
+										: tailwindColors.stone[200],
+								hidden: key === 'dht11' || key === 'test',
+							})),
 						...Object.keys(groupedPrevEntries).map((key) => ({
 							label: `${
 								tempSourceLabels[key as keyof typeof tempSourceLabels]
@@ -317,20 +315,23 @@ function Stats({ entries, source }: { entries: Entry[]; source: string }) {
 	const average = meanBy(frontRoomEntries, 'temperature')
 
 	return (
-		<div className="flex place-content-between overflow-x-auto w-full gap-16">
-			<div>
-				<div className="text-sm">High</div>
-				<div className="text-5xl">{formatNumber(high.temperature)}°C</div>
-				<div className="text-sm">{formatDate(high.timestamp)}</div>
-			</div>
-			<div>
-				<div className="text-sm">Low</div>
-				<div className="text-5xl">{formatNumber(low.temperature)}°C</div>
-				<div className="text-sm">{formatDate(low.timestamp)}</div>
-			</div>
-			<div>
-				<div className="text-sm">Average</div>
-				<div className="text-5xl">{formatNumber(average)}°C</div>
+		<div>
+			<h3 className="text-lg mb-2">{tempSourceLabels[source]}</h3>
+			<div className="flex place-content-between overflow-x-auto w-full gap-16">
+				<div>
+					<div className="text-sm">High</div>
+					<div className="text-5xl">{formatNumber(high.temperature)}°C</div>
+					<div className="text-sm">{formatDate(high.timestamp)}</div>
+				</div>
+				<div>
+					<div className="text-sm">Low</div>
+					<div className="text-5xl">{formatNumber(low.temperature)}°C</div>
+					<div className="text-sm">{formatDate(low.timestamp)}</div>
+				</div>
+				<div>
+					<div className="text-sm">Average</div>
+					<div className="text-5xl">{formatNumber(average)}°C</div>
+				</div>
 			</div>
 		</div>
 	)
@@ -341,7 +342,9 @@ export default function Index() {
 	const submit = useSubmit()
 	useReloadOnView()
 	const [searchParams] = useSearchParams()
-	const sources = [...new Set(entries.map((e: Entry) => e.source))]
+	const sources: string[] = [
+		...new Set(entries.map((e: Entry) => e.source)),
+	].toSorted((a: string, b: string) => a.localeCompare(b))
 	const selectedSource = searchParams.get('stats_source') ?? 'front_room'
 	const selectedTimespan = searchParams.get('timespan') ?? 'last_day'
 	const showComparison = searchParams.has('show_comparison')
@@ -390,9 +393,15 @@ export default function Index() {
 					timespan={selectedTimespan}
 				/>
 			</div>
-			<div className="space-y-5">
+			<div className="space-y-10">
+				<h2 className="text-2xl mb-5">Latest temperature</h2>
+				<div className="flex gap-10 flex-wrap justify-between">
+					{sources.map((s) => (
+						<LatestEntry entries={entries} source={s} />
+					))}
+				</div>
 				<h2 className="text-2xl mb-5">Stats</h2>
-				<Form
+				{/* <Form
 					method="GET"
 					onChange={(event) => {
 						submit(event.currentTarget, { preventScrollReset: true })
@@ -417,14 +426,15 @@ export default function Index() {
 							))}
 						</SelectContent>
 					</Select>
-				</Form>
-				<LatestEntry entries={entries} source={selectedSource} />
-				<Stats entries={entries} source={selectedSource} />
+				</Form> */}
+				{sources.map((s) => (
+					<Stats entries={entries} source={s} />
+				))}
 			</div>
-			<div>
+			{/* <div>
 				<h2 className="text-2xl mb-5">History</h2>
 				<TempHistory entries={entries} />
-			</div>
+			</div> */}
 		</div>
 	)
 }
