@@ -28,7 +28,7 @@ import {
 	useLocation,
 	useSearchParams,
 } from '@remix-run/react'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
 	addDays,
 	addHours,
@@ -292,19 +292,37 @@ function EntryChart({
 }
 
 function TempHistory({ entries }: { entries: Entry[] }) {
+	const [isVisible, setIsVisible] = useState(false)
+
 	return (
-		<table className="w-full">
-			<thead>
-				<tr>
-					<th>Timestamp</th>
-					<th className="text-right">Source</th>
-					<th className="text-right">Temperature</th>
-				</tr>
-			</thead>
-			{entries.map((e: Entry) => (
-				<Entry entry={e} key={e.id} />
-			))}
-		</table>
+		<div className="space-y-5">
+			<button
+				onClick={() => setIsVisible(!isVisible)}
+				className="py-2 rounded-md text-sm hover:underline text-blue-950"
+			>
+				{isVisible ? 'Hide history' : 'Show history'}
+			</button>
+
+			{isVisible ? (
+				<div>
+					<h2 className="text-2xl">History</h2>
+					<table className="w-full">
+						<thead>
+							<tr>
+								<th>Timestamp</th>
+								<th className="text-right">Source</th>
+								<th className="text-right">Temperature</th>
+							</tr>
+						</thead>
+						<tbody>
+							{entries.map((e: Entry) => (
+								<Entry entry={e} key={e.id} />
+							))}
+						</tbody>
+					</table>
+				</div>
+			) : null}
+		</div>
 	)
 }
 
@@ -431,10 +449,7 @@ export default function Index() {
 					<Stats entries={entries} source={s} />
 				))}
 			</div>
-			{/* <div>
-				<h2 className="text-2xl mb-5">History</h2>
-				<TempHistory entries={entries} />
-			</div> */}
+			<TempHistory entries={entries} />
 		</div>
 	)
 }
