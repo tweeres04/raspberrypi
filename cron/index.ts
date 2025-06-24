@@ -52,7 +52,7 @@ async function main() {
 		{
 			timestamp,
 			temperature: ds18b20,
-			source: 'front_room',
+			source: 'main_room',
 		},
 	].filter(Boolean) as schema.Entry[]
 

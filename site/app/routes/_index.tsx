@@ -42,14 +42,16 @@ import Chart from 'chart.js/auto'
 import { tempSourceLabels } from '~/lib/tempSourceLabels'
 
 function getSourceColor(source: string) {
-	return source === 'front_room'
+	return source === 'blue_room'
 		? tailwindColors.sky
 		: source === 'master_bedroom'
 		? tailwindColors.emerald
-		: source === 'back_room'
+		: source === 'main_room'
 		? tailwindColors.violet
-		: source === 'spare_bedroom'
+		: source === 'basement'
 		? tailwindColors.amber
+		: source === 'pink_room'
+		? tailwindColors.pink
 		: source === 'back_yard'
 		? tailwindColors.lime
 		: tailwindColors.stone
@@ -59,8 +61,8 @@ type Timespan = 'last_week' | 'last_day' | 'last_hour' | 'all'
 
 export const meta: MetaFunction = () => {
 	return [
-		{ title: 'Haultain Temps' },
-		{ name: 'description', content: 'Haultain Temps' },
+		{ title: 'Kiwi Temps' },
+		{ name: 'description', content: 'Kiwi Temps' },
 	]
 }
 
@@ -367,13 +369,13 @@ export default function Index() {
 	const sources: string[] = [
 		...new Set(entries.map((e: Entry) => e.source)),
 	].toSorted((a: string, b: string) => a.localeCompare(b))
-	const selectedSource = searchParams.get('stats_source') ?? 'front_room'
+	const selectedSource = searchParams.get('stats_source') ?? 'main_room'
 	const selectedTimespan = searchParams.get('timespan') ?? 'last_day'
 	const showComparison = searchParams.has('show_comparison')
 
 	return (
 		<div className="font-sans p-2 max-w-[500px] lg:max-w-[750px] mx-auto space-y-12">
-			<h1 className="text-3xl">Haultain Temps</h1>
+			<h1 className="text-3xl">Kiwi Temps</h1>
 			<div>
 				<h2 className="text-2xl mb-5">Trends</h2>
 				<Form
@@ -384,7 +386,7 @@ export default function Index() {
 					className="mb-3"
 					preventScrollReset
 				>
-					{selectedSource !== 'front_room' ? (
+					{selectedSource !== 'main_room' ? (
 						<input type="hidden" name="stats_source" value={selectedSource} />
 					) : null}
 					<div className="flex gap-5 place-items-center">

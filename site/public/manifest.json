@@ -1,7 +1,7 @@
 {
-	"name": "Haultain Temps",
+	"name": "Kiwi Temps",
 	"short_name": "Temps",
-	"description": "Haultain Temps",
+	"description": "Kiwi Temps",
 	"start_url": "/",
 	"display": "standalone",
 	"background_color": "#a78bfa",
