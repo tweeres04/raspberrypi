@@ -22,11 +22,10 @@ import * as schema from '../../../db/schema'
 import { type Entry } from '../../../db/schema'
 import {
 	useLoaderData,
-	useNavigate,
 	Form,
 	useSubmit,
-	useLocation,
 	useSearchParams,
+	useRevalidator,
 } from '@remix-run/react'
 import { useEffect, useRef, useState } from 'react'
 import {
@@ -187,19 +186,21 @@ function Entry({ entry }: { entry: Entry }) {
 }
 
 function useReloadOnView() {
-	const navigate = useNavigate()
-	const location = useLocation()
+	const revalidator = useRevalidator()
 
 	useEffect(() => {
-		document.addEventListener('visibilitychange', () => {
+		const handleVisibilityChange = () => {
 			if (!document.hidden) {
-				navigate(`.${location.search}`, {
-					replace: true,
-					preventScrollReset: true,
-				})
+				revalidator.revalidate()
 			}
-		})
-	}, [location.search, navigate])
+		}
+
+		document.addEventListener('visibilitychange', handleVisibilityChange)
+		
+		return () => {
+			document.removeEventListener('visibilitychange', handleVisibilityChange)
+		}
+	}, [revalidator])
 }
 
 function EntryChart({
@@ -421,7 +422,7 @@ export default function Index() {
 				<h2 className="text-2xl mb-5">Latest temperature</h2>
 				<div className="flex gap-x-5 gap-y-10 flex-wrap justify-between">
 					{sources.map((s) => (
-						<LatestEntry entries={entries} source={s} />
+						<LatestEntry key={s} entries={entries} source={s} />
 					))}
 				</div>
 				<h2 className="text-2xl mb-5">Stats</h2>
@@ -452,7 +453,7 @@ export default function Index() {
 					</Select>
 				</Form> */}
 				{sources.map((s) => (
-					<Stats entries={entries} source={s} />
+					<Stats key={s} entries={entries} source={s} />
 				))}
 			</div>
 			<TempHistory entries={entries} />
