@@ -27,12 +27,14 @@ import {
 	useSubmit,
 	useSearchParams,
 	useRevalidator,
+	useNavigation,
 } from '@remix-run/react'
 import { useEffect, useRef, useState } from 'react'
 import {
 	addDays,
 	addHours,
 	addWeeks,
+	formatDistanceToNow,
 	subDays,
 	subHours,
 	subWeeks,
@@ -387,6 +389,27 @@ function Stats({ entries, source }: { entries: Entry[]; source: string }) {
 	)
 }
 
+function StatusIndicator({ latestEntry }: { latestEntry: Entry }) {
+	const revalidator = useRevalidator()
+	const navigation = useNavigation()
+
+	const isLoading =
+		revalidator.state === 'loading' || navigation.state === 'loading'
+
+	return (
+		<div className="text-sm">
+			{isLoading ? (
+				<>Loading...</>
+			) : (
+				<>
+					<div className="text-xs">Latest entry</div>
+					<div>{formatDistanceToNow(latestEntry.timestamp)} ago</div>
+				</>
+			)}
+		</div>
+	)
+}
+
 export default function Index() {
 	const { sources, entries, prevEntries } = useLoaderData<typeof loader>()
 	const submit = useSubmit()
@@ -398,7 +421,10 @@ export default function Index() {
 
 	return (
 		<div className="font-sans p-2 max-w-[500px] lg:max-w-[750px] mx-auto space-y-12">
-			<h1 className="text-3xl">Kiwi Temps</h1>
+			<h1 className="text-3xl flex place-items-center">
+				<span className="flex-grow">🥝 Kiwi Temps</span>
+				<StatusIndicator latestEntry={entries[0]} />
+			</h1>
 			<div className="space-y-5">
 				<h2 className="text-2xl">Trends</h2>
 				<Form
