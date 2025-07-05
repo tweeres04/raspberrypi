@@ -182,7 +182,7 @@ function LatestEntry({
 				background: `linear-gradient(60deg, ${sourceColor[500]} 60%, ${sourceColor[300]} 100%)`,
 			}}
 		>
-			<div>{tempSourceLabels[source]}</div>
+			{source ? null : <div>{tempSourceLabels[source]}</div>}
 			<div className="text-8xl">{formatNumber(latestEntry.temperature)}°C</div>
 			<div>{formatDate(latestEntry.timestamp)}</div>
 		</div>
@@ -364,7 +364,9 @@ function Stats({ entries, source }: { entries: Entry[]; source: string }) {
 				background: `linear-gradient(60deg, ${sourceColor[500]} 60%, ${sourceColor[300]} 100%)`,
 			}}
 		>
-			<h3 className="text-lg mb-2">{tempSourceLabels[source]}</h3>
+			{source ? null : (
+				<h3 className="text-lg mb-2">{tempSourceLabels[source]}</h3>
+			)}
 			<div className="flex place-content-between overflow-x-auto w-full gap-16">
 				<div>
 					<div className="text-sm">High</div>
@@ -397,8 +399,8 @@ export default function Index() {
 	return (
 		<div className="font-sans p-2 max-w-[500px] lg:max-w-[750px] mx-auto space-y-12">
 			<h1 className="text-3xl">Kiwi Temps</h1>
-			<div>
-				<h2 className="text-2xl mb-5">Trends</h2>
+			<div className="space-y-5">
+				<h2 className="text-2xl">Trends</h2>
 				<Form
 					method="GET"
 					onChange={(event) => {
@@ -407,12 +409,9 @@ export default function Index() {
 					className="mb-3"
 					preventScrollReset
 				>
-					{selectedSource !== 'all' ? (
-						<input type="hidden" name="stats_source" value={selectedSource} />
-					) : null}
-					<div className="flex gap-5 place-items-center">
+					<div className="flex-col flex lg:flex-row gap-5 place-items-center">
 						<Select name="timespan" defaultValue={selectedTimespan}>
-							<SelectTrigger className="w-[180px]">
+							<SelectTrigger className="lg:w-48">
 								<SelectValue />
 							</SelectTrigger>
 							<SelectContent>
@@ -420,6 +419,21 @@ export default function Index() {
 								<SelectItem value="last_day">Last day</SelectItem>
 								<SelectItem value="last_week">Last week</SelectItem>
 								<SelectItem value="all">All</SelectItem>
+							</SelectContent>
+						</Select>
+						<Select name="stats_source" defaultValue={selectedSource}>
+							<SelectTrigger className="lg:w-48">
+								<SelectValue />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value="all" key="all">
+									All sources
+								</SelectItem>
+								{sources.map((s) => (
+									<SelectItem value={s} key={s}>
+										{tempSourceLabels[s]}
+									</SelectItem>
+								))}
 							</SelectContent>
 						</Select>
 						<div className="flex gap-1 place-items-center">
@@ -431,35 +445,6 @@ export default function Index() {
 							<Label htmlFor="show_comparison">Show comparisons</Label>
 						</div>
 					</div>
-				</Form>
-				<Form
-					method="GET"
-					onChange={(event) => {
-						submit(event.currentTarget, { preventScrollReset: true })
-					}}
-					className="mb-3"
-				>
-					{selectedTimespan !== 'last_day' ? (
-						<input type="hidden" name="timespan" value={selectedTimespan} />
-					) : null}
-					{showComparison ? (
-						<input type="hidden" name="show_comparison" value="on" />
-					) : null}
-					<Select name="stats_source" defaultValue={selectedSource}>
-						<SelectTrigger className="w-[180px]">
-							<SelectValue />
-						</SelectTrigger>
-						<SelectContent>
-							<SelectItem value="all" key="all">
-								All sources
-							</SelectItem>
-							{sources.map((s) => (
-								<SelectItem value={s} key={s}>
-									{tempSourceLabels[s]}
-								</SelectItem>
-							))}
-						</SelectContent>
-					</Select>
 				</Form>
 				<EntryChart
 					entries={entries}
