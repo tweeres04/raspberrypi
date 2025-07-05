@@ -3,6 +3,7 @@ import {
 	type MetaFunction,
 	type LoaderFunctionArgs,
 } from '@remix-run/node'
+import { and, asc, gte, inArray, not } from 'drizzle-orm'
 import { drizzle } from 'drizzle-orm/better-sqlite3'
 import Database from 'better-sqlite3'
 import 'chartjs-adapter-date-fns'
@@ -72,6 +73,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 	const url = new URL(request.url)
 	const timespan = url.searchParams.get('timespan') as Timespan
+	const source = url.searchParams.get('stats_source')
 	const showComparison = url.searchParams.has('show_comparison')
 	const now = new Date()
 
@@ -91,12 +93,26 @@ export async function loader({ request }: LoaderFunctionArgs) {
 					d.toISOString()
 			  )
 
+	const sourcesPromise = db
+		.selectDistinct({ source: schema.entries.source })
+		.from(schema.entries)
+		.where(
+			and(
+				gte(schema.entries.timestamp, startTimestamp),
+				not(inArray(schema.entries.source, ['test', 'dht11'])),
+				gte(schema.entries.temperature, -100) // arduinos are recording -127 temps every once in a while for some reason. Workaround for now.
+			)
+		)
+		.orderBy(asc(schema.entries.source))
+		.then((rows) => rows.map((row) => row.source))
+
 	const entriesPromise = db.query.entries.findMany({
-		where: (entries, { gte, and, not, inArray }) =>
+		where: (entries, { gte, and, not, inArray, eq }) =>
 			and(
 				gte(entries.timestamp, startTimestamp),
 				not(inArray(entries.source, ['test', 'dht11'])),
-				gte(entries.temperature, -100) // arduinos are recording -127 temps every once in a while for some reason. Workaround for now.
+				gte(entries.temperature, -100), // arduinos are recording -127 temps every once in a while for some reason. Workaround for now.
+				source && source !== 'all' ? eq(entries.source, source) : undefined
 			),
 		orderBy: (entries, { desc }) => [desc(entries.timestamp)],
 	})
@@ -104,18 +120,20 @@ export async function loader({ request }: LoaderFunctionArgs) {
 	let prevEntriesPromise: Promise<Entry[]> = Promise.resolve([])
 	if (showComparison && comparisonStart && comparisonEnd) {
 		prevEntriesPromise = db.query.entries.findMany({
-			where: (entries, { and, gte, lt, not, inArray }) =>
+			where: (entries, { and, gte, lt, not, inArray, eq }) =>
 				and(
 					gte(entries.timestamp, comparisonStart),
 					lt(entries.timestamp, comparisonEnd),
 					not(inArray(entries.source, ['test', 'dht11'])),
-					gte(entries.temperature, -100) // arduinos are recording -127 temps every once in a while for some reason. Workaround for now.
+					gte(entries.temperature, -100), // arduinos are recording -127 temps every once in a while for some reason. Workaround for now.
+					source && source !== 'all' ? eq(entries.source, source) : undefined
 				),
 			orderBy: (entries, { desc }) => [desc(entries.timestamp)],
 		})
 	}
 
-	let [entries, prevEntries] = await Promise.all([
+	let [sources, entries, prevEntries] = await Promise.all([
+		sourcesPromise,
 		entriesPromise,
 		prevEntriesPromise,
 	])
@@ -130,7 +148,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 	entries = decimator(entries)
 	prevEntries = decimator(prevEntries)
 
-	return json({ entries, prevEntries })
+	return json({ sources, entries, prevEntries })
 }
 
 function formatDate(date: string) {
@@ -157,7 +175,7 @@ function LatestEntry({
 	const latestEntry = entries.filter((e) => e.source === source)[0]
 	const sourceColor = getSourceColor(source)
 
-	return (
+	return latestEntry ? (
 		<div
 			className="w-full lg:w-auto p-5 shadow rounded text-white"
 			style={{
@@ -168,7 +186,7 @@ function LatestEntry({
 			<div className="text-8xl">{formatNumber(latestEntry.temperature)}°C</div>
 			<div>{formatDate(latestEntry.timestamp)}</div>
 		</div>
-	)
+	) : null
 }
 
 function Entry({ entry }: { entry: Entry }) {
@@ -196,7 +214,7 @@ function useReloadOnView() {
 		}
 
 		document.addEventListener('visibilitychange', handleVisibilityChange)
-		
+
 		return () => {
 			document.removeEventListener('visibilitychange', handleVisibilityChange)
 		}
@@ -327,10 +345,15 @@ function TempHistory({ entries }: { entries: Entry[] }) {
 }
 
 function Stats({ entries, source }: { entries: Entry[]; source: string }) {
-	const frontRoomEntries = entries.filter((e) => e.source === source)
-	const high = maxBy(frontRoomEntries, 'temperature')
-	const low = minBy(frontRoomEntries, 'temperature')
-	const average = meanBy(frontRoomEntries, 'temperature')
+	const sourceEntries = entries.filter((e) => e.source === source)
+
+	if (sourceEntries.length === 0) {
+		return null
+	}
+
+	const high = maxBy(sourceEntries, 'temperature')
+	const low = minBy(sourceEntries, 'temperature')
+	const average = meanBy(sourceEntries, 'temperature')
 
 	const sourceColor = getSourceColor(source)
 
@@ -363,14 +386,11 @@ function Stats({ entries, source }: { entries: Entry[]; source: string }) {
 }
 
 export default function Index() {
-	const { entries, prevEntries } = useLoaderData<typeof loader>()
+	const { sources, entries, prevEntries } = useLoaderData<typeof loader>()
 	const submit = useSubmit()
 	useReloadOnView()
 	const [searchParams] = useSearchParams()
-	const sources: string[] = [
-		...new Set(entries.map((e: Entry) => e.source)),
-	].toSorted((a: string, b: string) => a.localeCompare(b))
-	const selectedSource = searchParams.get('stats_source') ?? 'main_room'
+	const selectedSource = searchParams.get('stats_source') ?? 'all'
 	const selectedTimespan = searchParams.get('timespan') ?? 'last_day'
 	const showComparison = searchParams.has('show_comparison')
 
@@ -387,7 +407,7 @@ export default function Index() {
 					className="mb-3"
 					preventScrollReset
 				>
-					{selectedSource !== 'main_room' ? (
+					{selectedSource !== 'all' ? (
 						<input type="hidden" name="stats_source" value={selectedSource} />
 					) : null}
 					<div className="flex gap-5 place-items-center">
@@ -412,21 +432,7 @@ export default function Index() {
 						</div>
 					</div>
 				</Form>
-				<EntryChart
-					entries={entries}
-					prevEntries={prevEntries}
-					timespan={selectedTimespan}
-				/>
-			</div>
-			<div className="space-y-10">
-				<h2 className="text-2xl mb-5">Latest temperature</h2>
-				<div className="flex gap-x-5 gap-y-10 flex-wrap justify-between">
-					{sources.map((s) => (
-						<LatestEntry key={s} entries={entries} source={s} />
-					))}
-				</div>
-				<h2 className="text-2xl mb-5">Stats</h2>
-				{/* <Form
+				<Form
 					method="GET"
 					onChange={(event) => {
 						submit(event.currentTarget, { preventScrollReset: true })
@@ -444,6 +450,9 @@ export default function Index() {
 							<SelectValue />
 						</SelectTrigger>
 						<SelectContent>
+							<SelectItem value="all" key="all">
+								All sources
+							</SelectItem>
 							{sources.map((s) => (
 								<SelectItem value={s} key={s}>
 									{tempSourceLabels[s]}
@@ -451,7 +460,21 @@ export default function Index() {
 							))}
 						</SelectContent>
 					</Select>
-				</Form> */}
+				</Form>
+				<EntryChart
+					entries={entries}
+					prevEntries={prevEntries}
+					timespan={selectedTimespan}
+				/>
+			</div>
+			<div className="space-y-10">
+				<h2 className="text-2xl mb-5">Latest temperature</h2>
+				<div className="flex gap-x-5 gap-y-10 flex-wrap justify-between">
+					{sources.map((s) => (
+						<LatestEntry key={s} entries={entries} source={s} />
+					))}
+				</div>
+				<h2 className="text-2xl mb-5">Stats</h2>
 				{sources.map((s) => (
 					<Stats key={s} entries={entries} source={s} />
 				))}
