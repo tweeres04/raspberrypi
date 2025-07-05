@@ -1,7 +1,7 @@
 {
 	"name": "raspberrypi-cron",
 	"scripts": {
-		"start": "tsx cron/index.ts",
+		"start": "tsx index.ts",
 		"db:push": "drizzle-kit push",
 		"db:migrate": "drizzle-kit migrate"
 	},
