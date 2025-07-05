@@ -1,4 +1,10 @@
 {
+	"name": "raspberrypi-monorepo",
+	"private": true,
+	"workspaces": [
+		"site",
+		"cron"
+	],
 	"dependencies": {
 		"better-sqlite3": "^11.1.2",
 		"drizzle-kit": "^0.23.0",
@@ -7,6 +13,9 @@
 		"tsx": "^4.16.5",
 		"zod": "^3.23.8"
 	},
+	"devDependencies": {
+		"@types/better-sqlite3": "^7.6.11"
+	},
 	"scripts": {
 		"deploy": "./deploy.sh",
 		"db:push": "drizzle-kit push",
@@ -14,7 +23,10 @@
 		"db:generate": "drizzle-kit generate",
 		"db:migrate": "drizzle-kit migrate",
 		"db:studio": "drizzle-kit studio",
-		"db:data_migrate:2024-08-03": "tsx db/2024-08-03_migration.ts"
+		"db:data_migrate:2024-08-03": "tsx db/2024-08-03_migration.ts",
+		"site:dev": "npm run dev --workspace=site",
+		"site:build": "npm run build --workspace=site",
+		"cron:dev": "npm run dev --workspace=cron"
 	},
 	"type": "module"
 }

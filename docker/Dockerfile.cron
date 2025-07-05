@@ -1,11 +1,16 @@
 FROM node:lts-alpine
 
-WORKDIR /app/cron
-COPY ./cron/package.json ..
-RUN cd .. && npm install
+WORKDIR /app
+
+COPY ./package.json /app/package.json
+COPY ./cron/package.json /app/cron/package.json
+
+RUN npm install
 
 COPY ./cron/cronjobs /etc/crontabs/root
-COPY ./cron/index.ts .
-COPY ./db ../db
+COPY ./cron/index.ts /app/cron/index.ts
+COPY ./db /app/db
+
+WORKDIR /app/cron
 
 CMD ["crond", "-f", "-d", "8"]

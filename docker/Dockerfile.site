@@ -1,19 +1,17 @@
 FROM node:lts-alpine
 
 EXPOSE 3000
-WORKDIR /app/site
+WORKDIR /app
 
-COPY ./package.json /app
-RUN cd /app
-RUN npm install
-
+COPY ./package.json /app/package.json
 COPY ./site/package.json /app/site/package.json
-RUN cd /app/site
+
 RUN npm install
 
 COPY ./site /app/site
 COPY ./db /app/db
 
+WORKDIR /app/site
 RUN npm run build
 
 CMD ["npm", "run", "start"]
