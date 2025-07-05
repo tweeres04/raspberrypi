@@ -170,9 +170,11 @@ function formatNumber(number: number) {
 function LatestEntry({
 	entries,
 	source,
+	showLabel = true,
 }: {
 	entries: Entry[]
 	source: string
+	showLabel?: boolean
 }) {
 	const latestEntry = entries.filter((e) => e.source === source)[0]
 	const sourceColor = getSourceColor(source)
@@ -184,7 +186,7 @@ function LatestEntry({
 				background: `linear-gradient(60deg, ${sourceColor[500]} 60%, ${sourceColor[300]} 100%)`,
 			}}
 		>
-			{source ? null : <div>{tempSourceLabels[source]}</div>}
+			{showLabel ? <div>{tempSourceLabels[source]}</div> : null}
 			<div className="text-8xl">{formatNumber(latestEntry.temperature)}°C</div>
 			<div>{formatDate(latestEntry.timestamp)}</div>
 		</div>
@@ -346,7 +348,15 @@ function TempHistory({ entries }: { entries: Entry[] }) {
 	)
 }
 
-function Stats({ entries, source }: { entries: Entry[]; source: string }) {
+function Stats({
+	entries,
+	source,
+	showLabel = true,
+}: {
+	entries: Entry[]
+	source: string
+	showLabel?: boolean
+}) {
 	const sourceEntries = entries.filter((e) => e.source === source)
 
 	if (sourceEntries.length === 0) {
@@ -366,9 +376,9 @@ function Stats({ entries, source }: { entries: Entry[]; source: string }) {
 				background: `linear-gradient(60deg, ${sourceColor[500]} 60%, ${sourceColor[300]} 100%)`,
 			}}
 		>
-			{source ? null : (
+			{showLabel ? (
 				<h3 className="text-lg mb-2">{tempSourceLabels[source]}</h3>
-			)}
+			) : null}
 			<div className="flex place-content-between overflow-x-auto w-full gap-16">
 				<div>
 					<div className="text-sm">High</div>
@@ -482,12 +492,22 @@ export default function Index() {
 				<h2 className="text-2xl mb-5">Latest temperature</h2>
 				<div className="flex gap-x-5 gap-y-10 flex-wrap justify-between">
 					{sources.map((s) => (
-						<LatestEntry key={s} entries={entries} source={s} />
+						<LatestEntry
+							key={s}
+							entries={entries}
+							source={s}
+							showLabel={selectedSource === 'all'}
+						/>
 					))}
 				</div>
 				<h2 className="text-2xl mb-5">Stats</h2>
 				{sources.map((s) => (
-					<Stats key={s} entries={entries} source={s} />
+					<Stats
+						key={s}
+						entries={entries}
+						source={s}
+						showLabel={selectedSource === 'all'}
+					/>
 				))}
 			</div>
 			<TempHistory entries={entries} />
