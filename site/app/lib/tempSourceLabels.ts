@@ -7,7 +7,7 @@ export const tempSourceLabels = {
 	back_yard: 'Back yard',
 	front_yard: 'Front yard',
 	basement: 'Basement',
-	garage: 'Garage',
+	carport: 'Carport',
 }
 
 // export const tempSourceLabels = {

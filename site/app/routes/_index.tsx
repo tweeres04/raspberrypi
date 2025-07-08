@@ -56,6 +56,8 @@ function getSourceColor(source: string) {
 		? tailwindColors.pink
 		: source === 'back_yard'
 		? tailwindColors.lime
+		: source === 'carport'
+		? tailwindColors.gray
 		: tailwindColors.stone
 }
 
