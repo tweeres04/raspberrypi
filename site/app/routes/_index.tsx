@@ -409,7 +409,11 @@ function StatusIndicator({ latestEntry }: { latestEntry: Entry }) {
 		revalidator.state === 'loading' || navigation.state === 'loading'
 
 	return (
-		<div className="text-sm">
+		<button
+			className="text-sm"
+			onClick={() => revalidator.revalidate()}
+			disabled={isLoading}
+		>
 			{isLoading ? (
 				<>Loading...</>
 			) : (
@@ -418,7 +422,7 @@ function StatusIndicator({ latestEntry }: { latestEntry: Entry }) {
 					<div>{formatDistanceToNow(latestEntry.timestamp)} ago</div>
 				</>
 			)}
-		</div>
+		</button>
 	)
 }
 
