@@ -2,15 +2,24 @@ FROM node:lts-alpine
 
 WORKDIR /app
 
-COPY ./package.json /app/package.json
-COPY ./cron/package.json /app/cron/package.json
+# Copy package files first for better caching
+COPY ./package.json ./package-lock.json* /app/
+COPY ./cron/package.json ./cron/package-lock.json* /app/cron/
 
-RUN npm install
+# Install dependencies 
+RUN npm ci --no-audit --no-fund
 
-COPY ./cron/cronjobs /etc/crontabs/root
+# Copy source code
 COPY ./cron/index.ts /app/cron/index.ts
 COPY ./db /app/db
 
+# Copy and set up cron jobs
+COPY ./cron/cronjobs /etc/crontabs/root
+
+# Clean up to reduce image size
+RUN npm cache clean --force
+
 WORKDIR /app/cron
 
+# Start cron daemon
 CMD ["crond", "-f", "-d", "8"]

@@ -1,5 +1,6 @@
 ssh raspberrypi -T <<'EOL'
 	cd raspberrypi && \
 	git fetch && git reset --hard origin/main && \
-	sudo docker compose -f docker/compose.yml up --build -d
+	sudo docker compose -f docker/compose.yml build --parallel && \
+	sudo docker compose -f docker/compose.yml up -d
 EOL
