@@ -214,15 +214,22 @@ function useReloadOnView() {
 
 	useEffect(() => {
 		const handleVisibilityChange = () => {
-			if (!document.hidden) {
+			if (document.visibilityState === 'visible') {
 				revalidator.revalidate()
 			}
 		}
 
 		document.addEventListener('visibilitychange', handleVisibilityChange)
 
+		const intervalId = setInterval(() => {
+			if (document.visibilityState === 'visible') {
+				revalidator.revalidate()
+			}
+		}, 5 * 60 * 1000)
+
 		return () => {
 			document.removeEventListener('visibilitychange', handleVisibilityChange)
+			clearInterval(intervalId)
 		}
 	}, [revalidator])
 }
