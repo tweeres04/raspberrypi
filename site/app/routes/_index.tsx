@@ -33,10 +33,12 @@ import { useEffect, useRef, useState } from 'react'
 import {
 	addDays,
 	addHours,
+	addMonths,
 	addWeeks,
 	formatDistanceToNow,
 	subDays,
 	subHours,
+	subMonths,
 	subWeeks,
 } from 'date-fns'
 
@@ -62,6 +64,7 @@ function getSourceColor(source: string) {
 }
 
 type Timespan =
+	| 'last_month'
 	| 'last_week'
 	| 'last_day'
 	| 'last_twelve_hours'
@@ -97,6 +100,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
 			  )
 			: timespan === 'last_week'
 			? [subWeeks(now, 1), subWeeks(now, 2), subWeeks(now, 1)].map((d) =>
+					d.toISOString()
+			  )
+			: timespan === 'last_month'
+			? [subMonths(now, 1), subMonths(now, 2), subMonths(now, 1)].map((d) =>
 					d.toISOString()
 			  )
 			: timespan === 'all'
@@ -267,6 +274,8 @@ function EntryChart({
 					? addHours(pe.timestamp, 12)
 					: timespan === 'last_week'
 					? addWeeks(pe.timestamp, 1)
+					: timespan === 'last_month'
+					? addMonths(pe.timestamp, 1)
 					: addDays(pe.timestamp, 1),
 		}))
 		let chart = null
@@ -481,6 +490,7 @@ export default function Index() {
 								</SelectItem>
 								<SelectItem value="last_day">Last day</SelectItem>
 								<SelectItem value="last_week">Last week</SelectItem>
+								<SelectItem value="last_month">Last month</SelectItem>
 								<SelectItem value="all">All</SelectItem>
 							</SelectContent>
 						</Select>
