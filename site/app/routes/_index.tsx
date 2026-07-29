@@ -43,11 +43,13 @@ import {
 	addHours,
 	addMonths,
 	addWeeks,
+	addYears,
 	formatDistanceToNow,
 	subDays,
 	subHours,
 	subMonths,
 	subWeeks,
+	subYears,
 } from 'date-fns'
 
 import Chart from 'chart.js/auto'
@@ -72,6 +74,9 @@ function getSourceColor(source: string) {
 }
 
 type Timespan =
+	| 'last_year'
+	| 'last_six_months'
+	| 'last_three_months'
 	| 'last_month'
 	| 'last_week'
 	| 'last_day'
@@ -114,6 +119,18 @@ export async function loader({ request }: LoaderFunctionArgs) {
 			  )
 			: timespan === 'last_month'
 			? [subMonths(now, 1), subMonths(now, 2), subMonths(now, 1)].map((d) =>
+					d.toISOString()
+			  )
+			: timespan === 'last_three_months'
+			? [subMonths(now, 3), subMonths(now, 6), subMonths(now, 3)].map((d) =>
+					d.toISOString()
+			  )
+			: timespan === 'last_six_months'
+			? [subMonths(now, 6), subMonths(now, 12), subMonths(now, 6)].map((d) =>
+					d.toISOString()
+			  )
+			: timespan === 'last_year'
+			? [subYears(now, 1), subYears(now, 2), subYears(now, 1)].map((d) =>
 					d.toISOString()
 			  )
 			: timespan === 'all'
@@ -301,6 +318,12 @@ function EntryChart({
 					? addWeeks(pe.timestamp, 1)
 					: timespan === 'last_month'
 					? addMonths(pe.timestamp, 1)
+					: timespan === 'last_three_months'
+					? addMonths(pe.timestamp, 3)
+					: timespan === 'last_six_months'
+					? addMonths(pe.timestamp, 6)
+					: timespan === 'last_year'
+					? addYears(pe.timestamp, 1)
 					: addDays(pe.timestamp, 1),
 		}))
 		let chart = null
@@ -584,6 +607,13 @@ export default function Index() {
 								<SelectItem value="last_day">Last day</SelectItem>
 								<SelectItem value="last_week">Last week</SelectItem>
 								<SelectItem value="last_month">Last month</SelectItem>
+								<SelectItem value="last_three_months">
+									Last 3 months
+								</SelectItem>
+								<SelectItem value="last_six_months">
+									Last 6 months
+								</SelectItem>
+								<SelectItem value="last_year">Last year</SelectItem>
 								<SelectItem value="all">All</SelectItem>
 							</SelectContent>
 						</Select>
