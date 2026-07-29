@@ -7,6 +7,7 @@ import { and, asc, gte, inArray, not } from 'drizzle-orm'
 import { drizzle } from 'drizzle-orm/better-sqlite3'
 import Database from 'better-sqlite3'
 import 'chartjs-adapter-date-fns'
+import { CaretSortIcon } from '@radix-ui/react-icons'
 import {
 	Select,
 	SelectContent,
@@ -14,6 +15,13 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from '~/components/ui/select'
+import {
+	DropdownMenu,
+	DropdownMenuCheckboxItem,
+	DropdownMenuContent,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
+} from '~/components/ui/dropdown-menu'
 import { Checkbox } from '~/components/ui/checkbox'
 import { Label } from '~/components/ui/label'
 import { maxBy, minBy, meanBy, groupBy } from 'lodash-es'
@@ -85,7 +93,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 	const url = new URL(request.url)
 	const timespan = url.searchParams.get('timespan') as Timespan
-	const source = url.searchParams.get('stats_source')
+	const selectedSources = url.searchParams
+		.getAll('stats_source')
+		.filter((s) => s !== 'all')
 	const showComparison = url.searchParams.has('show_comparison')
 	const now = new Date()
 
@@ -127,12 +137,14 @@ export async function loader({ request }: LoaderFunctionArgs) {
 		.then((rows) => rows.map((row) => row.source))
 
 	const entriesPromise = db.query.entries.findMany({
-		where: (entries, { gte, and, not, inArray, eq }) =>
+		where: (entries, { gte, and, not, inArray }) =>
 			and(
 				gte(entries.timestamp, startTimestamp),
 				not(inArray(entries.source, ['test', 'dht11'])),
 				gte(entries.temperature, -100), // arduinos are recording -127 temps every once in a while for some reason. Workaround for now.
-				source && source !== 'all' ? eq(entries.source, source) : undefined
+				selectedSources.length > 0
+					? inArray(entries.source, selectedSources)
+					: undefined
 			),
 		orderBy: (entries, { desc }) => [desc(entries.timestamp)],
 	})
@@ -140,13 +152,15 @@ export async function loader({ request }: LoaderFunctionArgs) {
 	let prevEntriesPromise: Promise<Entry[]> = Promise.resolve([])
 	if (showComparison && comparisonStart && comparisonEnd) {
 		prevEntriesPromise = db.query.entries.findMany({
-			where: (entries, { and, gte, lt, not, inArray, eq }) =>
+			where: (entries, { and, gte, lt, not, inArray }) =>
 				and(
 					gte(entries.timestamp, comparisonStart),
 					lt(entries.timestamp, comparisonEnd),
 					not(inArray(entries.source, ['test', 'dht11'])),
 					gte(entries.temperature, -100), // arduinos are recording -127 temps every once in a while for some reason. Workaround for now.
-					source && source !== 'all' ? eq(entries.source, source) : undefined
+					selectedSources.length > 0
+						? inArray(entries.source, selectedSources)
+						: undefined
 				),
 			orderBy: (entries, { desc }) => [desc(entries.timestamp)],
 		})
@@ -453,14 +467,81 @@ function StatusIndicator({ latestEntry }: { latestEntry: Entry }) {
 	)
 }
 
+function SourcesSelect({
+	sources,
+	selectedSources,
+	onSourcesChange,
+}: {
+	sources: string[]
+	selectedSources: string[]
+	onSourcesChange: (sources: string[]) => void
+}) {
+	const label =
+		selectedSources.length === 0
+			? 'All sources'
+			: selectedSources.length === 1
+			? tempSourceLabels[selectedSources[0] as keyof typeof tempSourceLabels]
+			: `${selectedSources.length} sources`
+
+	return (
+		<DropdownMenu>
+			<DropdownMenuTrigger className="flex h-9 w-full lg:w-48 items-center justify-between whitespace-nowrap rounded-md border border-stone-200 bg-transparent px-3 py-2 text-sm shadow-sm ring-offset-white focus:outline-none focus:ring-1 focus:ring-stone-950">
+				<span className="line-clamp-1">{label}</span>
+				<CaretSortIcon className="h-4 w-4 opacity-50" />
+			</DropdownMenuTrigger>
+			<DropdownMenuContent align="start" className="w-[--radix-popper-anchor-width]">
+				<DropdownMenuCheckboxItem
+					checked={selectedSources.length === 0}
+					onSelect={(event) => event.preventDefault()}
+					onCheckedChange={() => onSourcesChange([])}
+				>
+					All sources
+				</DropdownMenuCheckboxItem>
+				<DropdownMenuSeparator />
+				{sources.map((s) => (
+					<DropdownMenuCheckboxItem
+						key={s}
+						checked={selectedSources.includes(s)}
+						onSelect={(event) => event.preventDefault()}
+						onCheckedChange={(checked) =>
+							onSourcesChange(
+								checked
+									? [...selectedSources, s]
+									: selectedSources.filter((selected) => selected !== s)
+							)
+						}
+					>
+						{tempSourceLabels[s as keyof typeof tempSourceLabels]}
+					</DropdownMenuCheckboxItem>
+				))}
+			</DropdownMenuContent>
+		</DropdownMenu>
+	)
+}
+
 export default function Index() {
 	const { sources, entries, prevEntries } = useLoaderData<typeof loader>()
 	const submit = useSubmit()
 	useReloadOnView()
 	const [searchParams] = useSearchParams()
-	const selectedSource = searchParams.get('stats_source') ?? 'all'
+	const selectedSources = searchParams
+		.getAll('stats_source')
+		.filter((s) => s !== 'all')
 	const selectedTimespan = searchParams.get('timespan') ?? 'last_day'
 	const showComparison = searchParams.has('show_comparison')
+	const formRef = useRef<HTMLFormElement>(null)
+
+	function handleSourcesChange(nextSources: string[]) {
+		if (!formRef.current) return
+
+		const formData = new FormData(formRef.current)
+		formData.delete('stats_source')
+		nextSources.forEach((s) => {
+			formData.append('stats_source', s)
+		})
+
+		submit(formData, { method: 'GET', preventScrollReset: true })
+	}
 
 	return (
 		<div className="font-sans p-2 max-w-[500px] lg:max-w-[750px] mx-auto space-y-12">
@@ -472,6 +553,7 @@ export default function Index() {
 				<h2 className="text-2xl">Trends</h2>
 				<Form
 					method="GET"
+					ref={formRef}
 					onChange={(event) => {
 						submit(event.currentTarget, { preventScrollReset: true })
 					}}
@@ -494,21 +576,14 @@ export default function Index() {
 								<SelectItem value="all">All</SelectItem>
 							</SelectContent>
 						</Select>
-						<Select name="stats_source" defaultValue={selectedSource}>
-							<SelectTrigger className="lg:w-48">
-								<SelectValue />
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value="all" key="all">
-									All sources
-								</SelectItem>
-								{sources.map((s) => (
-									<SelectItem value={s} key={s}>
-										{tempSourceLabels[s]}
-									</SelectItem>
-								))}
-							</SelectContent>
-						</Select>
+						{selectedSources.map((s) => (
+							<input key={s} type="hidden" name="stats_source" value={s} />
+						))}
+						<SourcesSelect
+							sources={sources}
+							selectedSources={selectedSources}
+							onSourcesChange={handleSourcesChange}
+						/>
 						<div className="flex gap-1 place-items-center">
 							<Checkbox
 								name="show_comparison"
@@ -533,7 +608,7 @@ export default function Index() {
 							key={s}
 							entries={entries}
 							source={s}
-							showLabel={selectedSource === 'all'}
+							showLabel={selectedSources.length !== 1}
 						/>
 					))}
 				</div>
@@ -543,7 +618,7 @@ export default function Index() {
 						key={s}
 						entries={entries}
 						source={s}
-						showLabel={selectedSource === 'all'}
+						showLabel={selectedSources.length !== 1}
 					/>
 				))}
 			</div>
