@@ -172,11 +172,22 @@ export async function loader({ request }: LoaderFunctionArgs) {
 		prevEntriesPromise,
 	])
 
+	// Decimate each source separately. Sampling every nth entry of the combined
+	// list can land on the same source every time and drop the others entirely.
 	const decimator = (entries: Entry[]) => {
 		const maxEntries = 1500
 		if (entries.length <= maxEntries) return entries
-		const step = Math.ceil(entries.length / maxEntries)
-		return entries.filter((_, i) => i % step === 0)
+
+		const entriesBySource = Object.values(groupBy(entries, 'source'))
+		const maxEntriesPerSource = Math.ceil(maxEntries / entriesBySource.length)
+
+		return entriesBySource
+			.flatMap((sourceEntries) => {
+				if (sourceEntries.length <= maxEntriesPerSource) return sourceEntries
+				const step = Math.ceil(sourceEntries.length / maxEntriesPerSource)
+				return sourceEntries.filter((_, i) => i % step === 0)
+			})
+			.sort((a, b) => b.timestamp.localeCompare(a.timestamp))
 	}
 
 	entries = decimator(entries)
